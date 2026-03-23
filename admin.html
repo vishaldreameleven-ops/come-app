@@ -361,17 +361,38 @@
 
             <!-- SPORTS PAGE PROMO BANNER -->
             <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">Sports Page - Promo Banner <span class="arrow">&#9660;</span></div>
+                <div class="section-header" onclick="toggleSection(this)">Sports Page - Banner Carousel <span class="arrow">&#9660;</span></div>
                 <div class="section-body">
+                    <p style="font-size:11px;color:#8b9bb4;margin-bottom:4px;">Add up to 5 images. They auto-slide on the sports page banner.</p>
                     <div class="field">
-                        <label>Promo Banner Image</label>
-                        <div class="drop-zone">
-                            <input type="file" id="sportsPromoBannerFile" accept="image/*">
-                            <div class="drop-icon">&#8683;</div>
-                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
-                        </div>
-                        <div class="img-preview" id="sportsPromoBannerPreview"><img id="sportsPromoBannerPreviewImg" src="" alt="preview"></div>
-                        <span class="img-remove" id="sportsPromoBannerRemove" onclick="removeImage('sportsPromoBannerImage','sportsPromoBannerPreview','sportsPromoBannerRemove','sportsPromoBannerFile')">Remove image</span>
+                        <label>Slide 1</label>
+                        <div class="drop-zone" id="sportsBanner0DropZone"><input type="file" id="sportsBanner0File" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="sportsBanner0Preview"><img id="sportsBanner0PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="sportsBanner0Remove" onclick="removeSportsBannerImage(0)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 2</label>
+                        <div class="drop-zone" id="sportsBanner1DropZone"><input type="file" id="sportsBanner1File" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="sportsBanner1Preview"><img id="sportsBanner1PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="sportsBanner1Remove" onclick="removeSportsBannerImage(1)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 3</label>
+                        <div class="drop-zone" id="sportsBanner2DropZone"><input type="file" id="sportsBanner2File" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="sportsBanner2Preview"><img id="sportsBanner2PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="sportsBanner2Remove" onclick="removeSportsBannerImage(2)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 4</label>
+                        <div class="drop-zone" id="sportsBanner3DropZone"><input type="file" id="sportsBanner3File" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="sportsBanner3Preview"><img id="sportsBanner3PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="sportsBanner3Remove" onclick="removeSportsBannerImage(3)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 5</label>
+                        <div class="drop-zone" id="sportsBanner4DropZone"><input type="file" id="sportsBanner4File" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="sportsBanner4Preview"><img id="sportsBanner4PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="sportsBanner4Remove" onclick="removeSportsBannerImage(4)">Remove</span>
                     </div>
                 </div>
             </div>
@@ -567,6 +588,44 @@
                 });
             })(_ci);
         }
+        // Sports banner carousel image pickers
+        for (var _sbi = 0; _sbi < 5; _sbi++) {
+            (function(i) {
+                var fileInput = document.getElementById('sportsBanner' + i + 'File');
+                var dropZone = document.getElementById('sportsBanner' + i + 'DropZone');
+                dropZone.addEventListener('click', function() { fileInput.click(); });
+                fileInput.addEventListener('change', function(e) {
+                    var file = e.target.files[0];
+                    if (!file || !file.type.startsWith('image/')) return;
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        pendingImages['sportsBannerImage_' + i] = ev.target.result;
+                        var wrap = document.getElementById('sportsBanner' + i + 'Preview');
+                        var img = document.getElementById('sportsBanner' + i + 'PreviewImg');
+                        var rem = document.getElementById('sportsBanner' + i + 'Remove');
+                        img.src = ev.target.result; wrap.style.display = 'block'; rem.style.display = 'inline';
+                    };
+                    reader.readAsDataURL(file);
+                });
+                dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+                dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+                dropZone.addEventListener('drop', function(e) {
+                    e.preventDefault(); dropZone.classList.remove('dragover');
+                    var file = e.dataTransfer.files[0];
+                    if (!file || !file.type.startsWith('image/')) return;
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        pendingImages['sportsBannerImage_' + i] = ev.target.result;
+                        var wrap = document.getElementById('sportsBanner' + i + 'Preview');
+                        var img = document.getElementById('sportsBanner' + i + 'PreviewImg');
+                        var rem = document.getElementById('sportsBanner' + i + 'Remove');
+                        img.src = ev.target.result; wrap.style.display = 'block'; rem.style.display = 'inline';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            })(_sbi);
+        }
+
         setupFilePicker('detBannerFile', 'detBannerImage', 'detBannerPreview', 'detBannerPreviewImg', 'detBannerRemove');
         setupFilePicker('catExploreFile', 'catExploreImg', 'catExplorePreview', 'catExplorePreviewImg', 'catExploreRemove');
         setupFilePicker('catSportsFile', 'catSportsImg', 'catSportsPreview', 'catSportsPreviewImg', 'catSportsRemove');
@@ -596,6 +655,13 @@
             document.getElementById('carousel' + i + 'Preview').style.display = 'none';
             document.getElementById('carousel' + i + 'Remove').style.display = 'none';
             document.getElementById('carousel' + i + 'File').value = '';
+        }
+
+        function removeSportsBannerImage(i) {
+            pendingImages['sportsBannerImage_' + i] = '';
+            document.getElementById('sportsBanner' + i + 'Preview').style.display = 'none';
+            document.getElementById('sportsBanner' + i + 'Remove').style.display = 'none';
+            document.getElementById('sportsBanner' + i + 'File').value = '';
         }
 
         function syncWonAmounts() {
@@ -653,6 +719,19 @@
                     }
                 });
 
+                // Load sports banner carousel images
+                if (data.sportsBannerImages && data.sportsBannerImages.length) {
+                    data.sportsBannerImages.forEach(function(img, i) {
+                        if (img && i < 5) {
+                            pendingImages['sportsBannerImage_' + i] = img;
+                            var wrap = document.getElementById('sportsBanner' + i + 'Preview');
+                            var imgEl = document.getElementById('sportsBanner' + i + 'PreviewImg');
+                            var rem = document.getElementById('sportsBanner' + i + 'Remove');
+                            imgEl.src = img; wrap.style.display = 'block'; rem.style.display = 'inline';
+                        }
+                    });
+                }
+
                 // Load number of matches, then render match fields with loaded data
                 if (data.matchCards && data.matchCards.length > 0) {
                     document.getElementById('numMatches').value = data.matchCards.length;
@@ -681,6 +760,14 @@
                 if (img) carouselImages.push(img);
             }
             data.carouselImages = carouselImages;
+
+            // Build sportsBannerImages array
+            var sportsBannerImages = [];
+            for (var si = 0; si < 5; si++) {
+                var simg = pendingImages['sportsBannerImage_' + si];
+                if (simg) sportsBannerImages.push(simg);
+            }
+            data.sportsBannerImages = sportsBannerImages;
 
             // Save match cards data
             var numMatches = parseInt(document.getElementById('numMatches').value);
