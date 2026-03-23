@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Match Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700;900&family=Lobster&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --card-dark: #1c2230;
+            --bg-light: #f5f7fa;
+            --text-white: #ffffff;
+            --text-gray: #8b9bb4;
+            --text-dark: #1a1f2e;
+            --accent-green: #2ecc71;
+            --won-green-dark: #00c853;
+            --won-bg-tint: #e8f5e9;
+            --accent-red: #e74c3c;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); padding-bottom: 60px; }
+        a { text-decoration: none; color: inherit; }
+
+        /* --- HEADER --- */
+        .details-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; background-color: var(--bg-dark); color: white;
+        }
+        .back-btn { font-size: 18px; color: white; }
+        .match-title-header { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+        .status-badge { background-color: #1e3a28; color: var(--accent-green); font-size: 10px; padding: 4px 8px; border-radius: 12px; display: flex; align-items: center; gap: 4px; }
+        .pts-icon { border: 1px solid #8b9bb4; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #8b9bb4; }
+
+        /* --- HERO BANNER --- */
+        .hero-container { background-color: var(--bg-dark); padding: 0 16px; }
+        .hero-card {
+            background: linear-gradient(180deg, #1c2230 0%, #141824 100%);
+            border-radius: 16px;
+            position: relative; overflow: hidden;
+            border: 1px solid rgba(200, 170, 190, 0.15);
+        }
+        .hero-card img { width: 100%; display: block; }
+
+        /* --- SCORE CARD --- */
+        .score-card-content {
+            padding: 20px 16px 16px;
+            position: relative;
+            min-height: 150px;
+        }
+        .score-card-teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            position: relative;
+            z-index: 2;
+        }
+        .score-team {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .score-team-right {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+        .score-flag {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #333;
+            background-size: cover;
+            background-position: center;
+            border: 2px solid rgba(255,255,255,0.15);
+            flex-shrink: 0;
+        }
+        .score-team-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding-top: 2px;
+        }
+        .score-team-code {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: 0.5px;
+        }
+        .score-line {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+        .score-team-right .score-line {
+            justify-content: flex-end;
+        }
+        .score-team-score {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+        }
+        .score-overs {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-gray);
+        }
+        .batting-indicator {
+            font-size: 10px;
+            color: #ffd700;
+            margin-left: 2px;
+        }
+
+        /* Watermark */
+        .score-watermark-container {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .score-watermark {
+            font-family: 'Lobster', cursive;
+            font-size: 80px;
+            color: rgba(255,255,255,0.06);
+            position: relative;
+        }
+        .score-watermark::before,
+        .score-watermark::after {
+            content: '';
+            position: absolute;
+            width: 90px;
+            height: 3px;
+            background: rgba(255,255,255,0.03);
+            top: 55%;
+            left: 50%;
+            border-radius: 2px;
+        }
+        .score-watermark::before { transform: translate(-50%, -50%) rotate(45deg); }
+        .score-watermark::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+        /* Decorative dots */
+        .score-card-content::before {
+            content: '';
+            position: absolute;
+            bottom: 40px;
+            left: 30px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.07);
+            z-index: 0;
+        }
+
+        .score-result {
+            text-align: center;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 25px;
+            position: relative;
+            z-index: 2;
+            letter-spacing: 0.3px;
+        }
+
+        .scorecard-bar {
+            background: #1a2035;
+            padding: 14px;
+            display: flex; justify-content: center; align-items: center; gap: 8px;
+            color: white; font-size: 15px; font-weight: 700;
+            letter-spacing: 0.5px;
+            border-bottom-left-radius: 16px; border-bottom-right-radius: 16px;
+            margin: 0 16px 20px; position: relative; top: 0; z-index: 0;
+            border: 1px solid rgba(200, 170, 190, 0.15); border-top: none;
+        }
+
+        /* --- TABS --- */
+        .tabs-nav { display: flex; background: white; padding: 0 16px; border-bottom: 1px solid #eee; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .tab-item { padding: 16px 12px; font-size: 13px; font-weight: 600; color: #888; cursor: pointer; position: relative; white-space: nowrap; }
+        .tab-item.active { color: var(--accent-red); }
+        .tab-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 3px; background-color: var(--accent-red); border-top-left-radius: 3px; border-top-right-radius: 3px; }
+
+        /* --- MAIN CONTENT --- */
+        .content-area { padding: 16px; }
+
+        /* Winner Status Card */
+        .winner-status-card {
+            background-color: white; border-radius: 12px 12px 0 0; padding: 20px;
+            position: relative; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .winner-status-card::before { content: ''; position: absolute; top: 0; right: 0; width: 55%; height: 100%; background: linear-gradient(135deg, transparent 30%, rgba(240,240,240,0.6) 60%, rgba(230,230,230,0.4) 100%); z-index: 0; }
+        .status-content { position: relative; z-index: 1; }
+        .won-title { color: #555; font-size: 14px; margin-bottom: 5px; }
+        .won-amount-huge { font-family: 'Roboto', sans-serif; font-size: 32px; font-weight: 900; color: var(--won-green-dark); margin-bottom: 10px; display: flex; align-items: center; }
+        .breakup-link { font-size: 12px; color: var(--text-dark); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .trophy-illustration-right { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 120px; height: 120px; z-index: 2; }
+
+        .security-msg { background-color: #e3f2fd; color: #555; font-size: 11px; padding: 8px 12px; border-radius: 0 0 12px 12px; margin-bottom: 20px; display: flex; align-items: center; gap: 6px; }
+
+        /* Contest Details Card */
+        .contest-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .contest-header { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+        .guaranteed-tag { font-size: 12px; color: #555; display: flex; align-items: center; gap: 6px; }
+        .entry-fee { font-size: 12px; color: #555; }
+        .contest-stats-row { padding: 12px 16px; display: flex; justify-content: space-between; background-color: #fcfcfc; font-size: 11px; color: #888; border-bottom: 1px solid #f0f0f0; }
+        .stat-item { display: flex; align-items: center; gap: 4px; }
+
+        /* Leaderboard Rows */
+        .user-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-bottom: 1px solid #f0f0f0; font-size: 12px; }
+        .user-row.won-highlight { background-color: var(--won-bg-tint); }
+
+        .user-info-col { display: flex; flex-direction: column; gap: 4px; }
+        .user-name { font-weight: 600; color: var(--text-dark); }
+        .won-highlight .user-name { color: var(--won-green-dark); }
+        .won-highlight .winning-text { color: var(--won-green-dark); font-weight: 600; }
+
+        .rank-badge { background-color: #e0f2f1; color: #00796b; padding: 2px 6px; border-radius: 4px; font-size: 10px; display: flex; align-items: center; gap: 4px; width: fit-content; }
+        .rank-badge i { font-size: 10px; }
+
+        .points-col { text-align: center; font-weight: 600; color: var(--text-dark); }
+        .rank-col { text-align: right; font-weight: 700; color: var(--text-dark); font-size: 14px; }
+        .rank-col.hash { color: #888; font-weight: 400; font-size: 12px; }
+
+        /* --- BOTTOM NAV --- */
+        .bottom-nav-white { position: fixed; bottom: 0; width: 100%; background-color: white; display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #eee; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; }
+        .b-nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #999; font-size: 10px; cursor: pointer; }
+        .b-nav-item i { font-size: 20px; }
+        .b-nav-item.active { color: #d32f2f; }
+
+        /* --- MOBILE STATUS BAR --- */
+        .status-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; background-color: var(--bg-dark); font-size: 12px; font-weight: 600; color: #ffffff; }
+        .status-bar-left { display: flex; align-items: center; gap: 6px; }
+        .status-bar-time { font-size: 13px; font-weight: 700; }
+        .status-bar-right { display: flex; align-items: center; gap: 6px; }
+        .status-bar-right i { font-size: 13px; color: #ffffff; }
+        .battery-container { display: flex; align-items: center; gap: 3px; }
+        .battery-icon { width: 22px; height: 11px; border: 1.5px solid #ffffff; border-radius: 2px; position: relative; display: flex; align-items: center; padding: 1px; }
+        .battery-icon::after { content: ''; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); width: 2px; height: 5px; background: #ffffff; border-radius: 0 1px 1px 0; }
+        .battery-fill { height: 100%; width: 80%; background: #ffffff; border-radius: 1px; }
+        .battery-pct { font-size: 11px; font-weight: 600; }
+        .signal-bars { display: flex; align-items: flex-end; gap: 1px; height: 12px; }
+        .signal-bars .bar { width: 3px; background: #ffffff; border-radius: 1px; }
+        .signal-bars .bar:nth-child(1) { height: 3px; }
+        .signal-bars .bar:nth-child(2) { height: 5px; }
+        .signal-bars .bar:nth-child(3) { height: 8px; }
+        .signal-bars .bar:nth-child(4) { height: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <span class="status-bar-time" id="status-time">10:55</span>
+            <i class="fas fa-gear" style="font-size: 11px; color: #aaa;"></i>
+        </div>
+        <div class="status-bar-right">
+            <i class="fas fa-wifi"></i>
+            <div class="signal-bars">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <div class="battery-container">
+                <div class="battery-icon"><div class="battery-fill"></div></div>
+                <span class="battery-pct">82</span>
+            </div>
+        </div>
+    </div>
+
+    <header class="details-header">
+        <a href="sports.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>
+        <div class="match-title-header">
+            <span data-field="detMatchTitle">SL v AUS</span>
+            <span class="status-badge"><i class="fas fa-circle" style="font-size: 6px;"></i> COMPLETED</span>
+        </div>
+        <div class="pts-icon">PTS</div>
+    </header>
+
+    <section class="hero-container">
+        <div class="hero-card" id="det-hero-card">
+            <img id="det-hero-img" src="" alt="" style="display:none;">
+            <div class="score-card-content" id="score-card-content">
+                <div class="score-card-teams">
+                    <div class="score-team score-team-left">
+                        <div class="score-flag" id="det-flag-1"></div>
+                        <div class="score-team-info">
+                            <span class="score-team-code" data-field="detTeam1Code">SL</span>
+                            <div class="score-line">
+                                <span class="score-team-score" data-field="detTeam1Score">184-2</span>
+                                <span class="score-overs" data-field="detTeam1Overs">(18.0)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-team score-team-right">
+                        <div class="score-team-info">
+                            <span class="score-team-code" data-field="detTeam2Code">AUS</span>
+                            <div class="score-line">
+                                <span class="score-team-score" data-field="detTeam2Score">181-10</span>
+                                <span class="score-overs" data-field="detTeam2Overs">(20.0)</span>
+                                <span class="batting-indicator">★</span>
+                            </div>
+                        </div>
+                        <div class="score-flag" id="det-flag-2"></div>
+                    </div>
+                </div>
+                <div class="score-watermark-container">
+                    <div class="score-watermark">C</div>
+                </div>
+                <div class="score-result">
+                    <span data-field="detMatchResult">SL beat AUS by 8 wickets</span>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="scorecard-bar">
+        Scorecard <i class="fas fa-angles-down"></i>
+    </div>
+
+    <div class="tabs-nav">
+        <div class="tab-item active">My Contests (1)</div>
+        <div class="tab-item">Teams (1)</div>
+        <div class="tab-item">Commentary</div>
+        <div class="tab-item">Winnings</div>
+    </div>
+
+    <div class="content-area">
+
+        <div class="winner-status-card">
+            <div class="status-content">
+                <div class="won-title" data-field="detWonTitle">You have won in 1 contests!</div>
+                <div class="won-amount-huge" data-field="detWonAmount">₹49</div>
+                <div class="breakup-link">View breakup <i class="fas fa-chevron-right" style="font-size: 10px;"></i></div>
+            </div>
+            <div class="trophy-illustration-right">
+                <img src="assets/icons/trophy.jpeg" alt="Trophy" style="width: 100%; height: 100%; object-fit: contain;">
+            </div>
+        </div>
+        <div class="security-msg">
+            <i class="fas fa-shield-alt" style="color:#888;"></i> Keep winnings safe. We never ask for OTP.
+        </div>
+
+        <div class="contest-card">
+            <div class="contest-header">
+                <div class="guaranteed-tag">
+                    <i class="fas fa-check-circle" style="color:#888;"></i> Guaranteed <i>plus</i><sup>+</sup>
+                    <strong style="color:black; margin-left: 5px;" data-field="detContestPrize">₹2.56 Crores</strong>
+                </div>
+                <div class="entry-fee">Entry <strong data-field="detEntryFee">₹49</strong></div>
+            </div>
+            <div class="contest-stats-row">
+                <div class="stat-item"><span style="font-size:13px;">&#9312;</span> <span data-field="detTopPrize">₹44.29 L</span></div>
+                <div class="stat-item"><i class="fas fa-trophy" style="color:#ccc;"></i> <span data-field="detWinPct">56%</span></div>
+                <div class="stat-item">&#9410; 20</div>
+                <div class="stat-item" data-field="detSpots">607808 Spots</div>
+            </div>
+
+            <div class="user-row won-highlight">
+                <div class="user-info-col" style="flex: 2;">
+                    <span class="user-name" data-field="detUser1Name">User69126...</span>
+                    <span class="winning-text" data-field="detUser1Won">You've won ₹49</span>
+                </div>
+                <div style="flex: 1;">
+                     <div class="rank-badge"><i class="fas fa-trophy"></i> T1</div>
+                </div>
+                <div class="points-col" style="flex: 1;" data-field="detUser1Points">835.5</div>
+                <div class="rank-col" style="flex: 1;" data-field="detUser1Rank">#257,740</div>
+            </div>
+
+            <div class="user-row" id="user2-row">
+                <div class="user-info-col" style="flex: 2;">
+                    <span class="user-name" data-field="detUser2Name">User212621</span>
+                    <span class="winning-text" style="color:#888;" data-field="detUser2Won">You've won ₹49</span>
+                </div>
+                <div style="flex: 1;">
+                     <div class="rank-badge"><i class="fas fa-trophy"></i> T1</div>
+                </div>
+                <div class="points-col" style="flex: 1;" data-field="detUser2Points">821.5</div>
+                <div class="rank-col hash" style="flex: 1;" data-field="detUser2Rank">#320212</div>
+            </div>
+        </div>
+
+    </div>
+
+
+    <nav class="bottom-nav-white">
+        <div class="b-nav-item"><i class="fas fa-trophy"></i><span>Home</span></div>
+        <div class="b-nav-item active"><i class="fas fa-stopwatch"></i><span>My Matches</span></div>
+        <div class="b-nav-item"><i class="fas fa-coins"></i><span>Rewards</span></div>
+    </nav>
+
+    <script>
+    comeDB.once('value', function(snapshot) {
+        var d = snapshot.val() || {};
+        if (d && Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
+        // Status bar time from admin
+        var stEl = document.getElementById('status-time');
+        if (stEl && d.statusBarTime) stEl.textContent = d.statusBarTime;
+
+        document.querySelectorAll('[data-field]').forEach(function(el) {
+            if (d[el.dataset.field] !== undefined && d[el.dataset.field] !== '') {
+                el.textContent = d[el.dataset.field];
+            }
+        });
+        document.querySelectorAll('[data-bg]').forEach(function(el) {
+            if (d[el.dataset.bg] !== undefined && d[el.dataset.bg] !== '') {
+                el.style.background = d[el.dataset.bg];
+                el.innerHTML = '';
+            }
+        });
+
+        // Render team flags from country codes
+        var countryISO = {
+            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
+            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
+            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
+            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
+            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
+        };
+
+        function setFlag(elementId, teamCode) {
+            var el = document.getElementById(elementId);
+            if (!el || !teamCode) return;
+            var code = teamCode.toUpperCase().trim();
+            var iso = countryISO[code];
+            if (iso) {
+                el.style.backgroundImage = 'url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso + '.svg)';
+                el.style.backgroundSize = 'cover';
+                el.style.backgroundPosition = 'center';
+            }
+        }
+
+        // Get team codes from localStorage or DOM defaults
+        var t1El = document.querySelector('[data-field="detTeam1Code"]');
+        var t2El = document.querySelector('[data-field="detTeam2Code"]');
+        var team1Code = (d.detTeam1Code || (t1El ? t1El.textContent : '')).trim();
+        var team2Code = (d.detTeam2Code || (t2El ? t2El.textContent : '')).trim();
+        setFlag('det-flag-1', team1Code);
+        setFlag('det-flag-2', team2Code);
+
+        // Hide User 2 row if all fields are empty
+        var u2Name = d.detUser2Name || '';
+        var u2Won = d.detUser2Won || '';
+        var u2Points = d.detUser2Points || '';
+        var u2Rank = d.detUser2Rank || '';
+        if (!u2Name && !u2Won && !u2Points && !u2Rank) {
+            var user2Row = document.getElementById('user2-row');
+            if (user2Row) user2Row.style.display = 'none';
+        }
+
+        // Banner image overrides score card if uploaded
+        if (d.detBannerImage) {
+            var heroImg = document.getElementById('det-hero-img');
+            var scoreCard = document.getElementById('score-card-content');
+            if (heroImg) {
+                heroImg.src = d.detBannerImage;
+                heroImg.style.display = 'block';
+            }
+            if (scoreCard) scoreCard.style.display = 'none';
+        }
+    });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Come - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background: #0a0c14; color: #e0e0e0; min-height: 100vh; }
+        .container { max-width: 480px; margin: 0 auto; padding: 20px 16px 100px; }
+        h1 { text-align: center; font-size: 22px; margin-bottom: 6px; color: #fff; }
+        .subtitle { text-align: center; font-size: 12px; color: #8b9bb4; margin-bottom: 24px; }
+        .section { background: #151b2e; border-radius: 12px; margin-bottom: 16px; border: 1px solid #232b3e; overflow: hidden; }
+        .section-header { padding: 14px 16px; font-size: 13px; font-weight: 700; color: #3498db; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; background: #1a2138; user-select: none; }
+        .section-header .arrow { transition: transform 0.3s; font-size: 10px; }
+        .section-header.collapsed .arrow { transform: rotate(-90deg); }
+        .section-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+        .section-body.hidden { display: none; }
+        .field { display: flex; flex-direction: column; gap: 4px; }
+        label { font-size: 11px; color: #8b9bb4; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        input[type="text"] { background: #0f111a; border: 1px solid #2a3245; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; outline: none; transition: border-color 0.2s; width: 100%; }
+        input[type="text"]:focus { border-color: #3498db; }
+        .field-row { display: flex; gap: 10px; }
+        .field-row .field { flex: 1; }
+        input[type="color"] { width: 40px; height: 40px; border: 2px solid #2a3245; border-radius: 8px; cursor: pointer; background: #0f111a; padding: 2px; }
+        input[type="file"] { background: #0f111a; border: 1px solid #2a3245; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 12px; width: 100%; cursor: pointer; }
+        input[type="file"]::-webkit-file-upload-button { background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; border: none; padding: 6px 14px; border-radius: 6px; font-weight: 600; font-size: 11px; cursor: pointer; margin-right: 10px; }
+        .img-preview { margin-top: 8px; border-radius: 8px; overflow: hidden; border: 1px solid #2a3245; max-height: 120px; display: none; }
+        .img-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .img-remove { font-size: 11px; color: #e74c3c; cursor: pointer; margin-top: 6px; font-weight: 600; display: none; }
+        .drop-zone { background: #0f111a; border: 2px dashed #2a3245; border-radius: 10px; padding: 24px 16px; text-align: center; cursor: pointer; transition: border-color 0.3s, background 0.3s; }
+        .drop-zone:hover, .drop-zone.dragover { border-color: #3498db; background: #111627; }
+        .drop-zone .drop-icon { font-size: 24px; color: #3498db; margin-bottom: 6px; }
+        .drop-zone .drop-text { color: #8b9bb4; font-size: 12px; pointer-events: none; line-height: 1.6; }
+        .drop-zone .drop-text span { color: #3498db; font-weight: 600; }
+        .drop-zone input[type="file"] { display: none; }
+        .divider { height: 1px; background: #232b3e; margin: 4px 0; }
+        .group-label { font-size: 11px; color: #f1c40f; font-weight: 600; margin-top: 4px; }
+        .btn-container { position: fixed; bottom: 0; left: 0; right: 0; background: #0a0c14; border-top: 1px solid #232b3e; padding: 12px 16px; display: flex; gap: 10px; justify-content: center; z-index: 100; }
+        .btn { padding: 14px 20px; border: none; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; }
+        .btn-save { background: linear-gradient(135deg, #2ecc71, #27ae60); color: #fff; flex: 2; }
+        .btn-reset { background: linear-gradient(135deg, #e74c3c, #c0392b); color: #fff; flex: 1; }
+        .btn-preview { background: linear-gradient(135deg, #3498db, #2980b9); color: #fff; flex: 1; }
+        .btn:active { transform: scale(0.97); }
+        .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px); background: #2ecc71; color: #fff; padding: 12px 24px; border-radius: 10px; font-weight: 600; font-size: 14px; z-index: 999; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 12px rgba(46,204,113,0.4); }
+        .toast.show { transform: translateX(-50%) translateY(0); }
+        .flag-preview-circle { width: 36px; height: 36px; min-width: 36px; min-height: 36px; flex-shrink: 0; border-radius: 50%; border: 2px solid #2a3245; background: #0f111a; transition: background 0.3s ease; }
+        .country-name-preview { font-size: 11px; color: #8b9bb4; margin-top: 4px; min-height: 16px; }
+        .invalid-country { border-color: #e74c3c !important; }
+        .valid-country { border-color: #2ecc71 !important; }
+    </style>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Admin Panel</h1>
+        <p class="subtitle">Edit content across all pages. Hit Save, then Preview.</p>
+
+        <form id="adminForm">
+
+            <!-- GENERAL -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">General <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field">
+                        <label>Status Bar Time</label>
+                        <input type="text" name="statusBarTime" value="10:55" placeholder="e.g. 10:55">
+                    </div>
+                    <div class="field">
+                        <label>Wallet Balance</label>
+                        <input type="text" name="balance" value="3918611">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CATEGORY ICONS -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Category Icons <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field">
+                        <label>Explore Icon</label>
+                        <div class="drop-zone">
+                            <input type="file" id="catExploreFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="catExplorePreview"><img id="catExplorePreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="catExploreRemove" onclick="removeImage('catExploreImg','catExplorePreview','catExploreRemove','catExploreFile')">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Sports Icon</label>
+                        <div class="drop-zone">
+                            <input type="file" id="catSportsFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="catSportsPreview"><img id="catSportsPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="catSportsRemove" onclick="removeImage('catSportsImg','catSportsPreview','catSportsRemove','catSportsFile')">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Casino Icon</label>
+                        <div class="drop-zone">
+                            <input type="file" id="catCasinoFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="catCasinoPreview"><img id="catCasinoPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="catCasinoRemove" onclick="removeImage('catCasinoImg','catCasinoPreview','catCasinoRemove','catCasinoFile')">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Rummy Icon</label>
+                        <div class="drop-zone">
+                            <input type="file" id="catRummyFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="catRummyPreview"><img id="catRummyPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="catRummyRemove" onclick="removeImage('catRummyImg','catRummyPreview','catRummyRemove','catRummyFile')">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Jackpot Banner</label>
+                        <div class="drop-zone">
+                            <input type="file" id="catJackpotFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="catJackpotPreview"><img id="catJackpotPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="catJackpotRemove" onclick="removeImage('catJackpotImg','catJackpotPreview','catJackpotRemove','catJackpotFile')">Remove</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOME CAROUSEL -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Home - Carousel Slides <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <p style="font-size:11px;color:#8b9bb4;margin-bottom:4px;">Add up to 5 images. They auto-slide on the home screen.</p>
+                    <div class="field">
+                        <label>Slide 1</label>
+                        <div class="drop-zone" id="carousel0DropZone">
+                            <input type="file" id="carousel0File" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="carousel0Preview"><img id="carousel0PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="carousel0Remove" onclick="removeCarouselImage(0)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 2</label>
+                        <div class="drop-zone" id="carousel1DropZone">
+                            <input type="file" id="carousel1File" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="carousel1Preview"><img id="carousel1PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="carousel1Remove" onclick="removeCarouselImage(1)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 3</label>
+                        <div class="drop-zone" id="carousel2DropZone">
+                            <input type="file" id="carousel2File" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="carousel2Preview"><img id="carousel2PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="carousel2Remove" onclick="removeCarouselImage(2)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 4</label>
+                        <div class="drop-zone" id="carousel3DropZone">
+                            <input type="file" id="carousel3File" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="carousel3Preview"><img id="carousel3PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="carousel3Remove" onclick="removeCarouselImage(3)">Remove</span>
+                    </div>
+                    <div class="field">
+                        <label>Slide 5</label>
+                        <div class="drop-zone" id="carousel4DropZone">
+                            <input type="file" id="carousel4File" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="carousel4Preview"><img id="carousel4PreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="carousel4Remove" onclick="removeCarouselImage(4)">Remove</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOME MATCH CARD -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Home - Match Card <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field"><label>League</label><input type="text" name="matchLeague" value="ICC Men's T20 World Cup, 2026"></div>
+                    <span class="group-label">Team 1</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="matchTeam1Code" value="SA" oninput="autoFillCountry('matchTeam1Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="matchTeam1Name" value="South Africa"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="matchTeam1Color" value="#008000"></div>
+                    <span class="group-label">Team 2</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="matchTeam2Code" value="AFG" oninput="autoFillCountry('matchTeam2Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="matchTeam2Name" value="Afghanistan"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="matchTeam2Color" value="#ff0000"></div>
+                    <div class="divider"></div>
+                    <div class="field-row">
+                        <div class="field"><label>Time Label</label><input type="text" name="matchTimeLabel" value="Tomorrow"></div>
+                        <div class="field"><label>Time Value</label><input type="text" name="matchTimeValue" value="11:00 AM"></div>
+                    </div>
+                    <div class="field"><label>Prize Amount</label><input type="text" name="matchPrize" value="₹10.57M"></div>
+                </div>
+            </div>
+
+            <!-- SPORTS WON MATCH -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Sports - Won Match <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <span class="group-label">Team 1</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="wonTeam1Code" value="PAK" oninput="autoFillCountry('wonTeam1Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="wonTeam1Name" value="Pakistan"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="wonTeam1Color" value="#006600"></div>
+                    <span class="group-label">Team 2</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="wonTeam2Code" value="USA" oninput="autoFillCountry('wonTeam2Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="wonTeam2Name" value="USA"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="wonTeam2Color" value="#b22234"></div>
+                    <div class="divider"></div>
+                    <div class="field-row">
+                        <div class="field"><label>Date</label><input type="text" name="wonDate" value="10 Feb"></div>
+                        <div class="field"><label>Status</label><input type="text" name="wonStatus" value="Completed"></div>
+                    </div>
+                    <div class="field"><label>Won Amount Text</label><input type="text" name="wonAmount" value="Won ₹3918609"></div>
+                </div>
+            </div>
+
+            <!-- SPORTS MATCH CARD 1 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Sports - Match Card 1 <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field"><label>League</label><input type="text" name="sp1League" value="T20 · ICC MT20 WC, 2026"></div>
+                    <span class="group-label">Team 1</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="sp1Team1Code" value="SA" oninput="autoFillCountry('sp1Team1Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="sp1Team1Name" value="South Africa"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="sp1Team1Color" value="#007749"></div>
+                    <span class="group-label">Team 2</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="sp1Team2Code" value="AFG" oninput="autoFillCountry('sp1Team2Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="sp1Team2Name" value="Afghanistan"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="sp1Team2Color" value="#d32f2f"></div>
+                    <div class="divider"></div>
+                    <div class="field-row">
+                        <div class="field"><label>Time Label</label><input type="text" name="sp1TimeLabel" value="Tomorrow"></div>
+                        <div class="field"><label>Time Value</label><input type="text" name="sp1TimeValue" value="11:00 AM"></div>
+                    </div>
+                    <div class="field"><label>Prize</label><input type="text" name="sp1Prize" value="₹1.0 Crores+"></div>
+                </div>
+            </div>
+
+            <!-- SPORTS MATCH CARD 2 -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Sports - Match Card 2 <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field"><label>League</label><input type="text" name="sp2League" value="T20 · ICC MT20 WC, 2026"></div>
+                    <span class="group-label">Team 1</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="sp2Team1Code" value="AUS" oninput="autoFillCountry('sp2Team1Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="sp2Team1Name" value="Australia"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="sp2Team1Color" value="#000080"></div>
+                    <span class="group-label">Team 2</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="sp2Team2Code" value="IRE" oninput="autoFillCountry('sp2Team2Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="sp2Team2Name" value="Ireland"></div>
+                    </div>
+                    <div class="field"><label>Flag Color</label><input type="color" name="sp2Team2Color" value="#169b62"></div>
+                    <div class="divider"></div>
+                    <div class="field-row">
+                        <div class="field"><label>Time Label</label><input type="text" name="sp2TimeLabel" value="Tomorrow"></div>
+                        <div class="field"><label>Time Value</label><input type="text" name="sp2TimeValue" value="03:00 PM"></div>
+                    </div>
+                    <div class="field"><label>Prize</label><input type="text" name="sp2Prize" value="₹1.0 Crores+"></div>
+                </div>
+            </div>
+
+            <!-- MATCH DETAILS PAGE -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Match Details Page <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field">
+                        <label>Hero Banner Image</label>
+                        <div class="drop-zone">
+                            <input type="file" id="detBannerFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="detBannerPreview"><img id="detBannerPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="detBannerRemove" onclick="removeImage('detBannerImage','detBannerPreview','detBannerRemove','detBannerFile')">Remove image</span>
+                    </div>
+                    <div class="divider"></div>
+                    <span class="group-label">Score Card - Team 1</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="detTeam1Code" value="SL"></div>
+                        <div class="field"><label>Score</label><input type="text" name="detTeam1Score" value="184-2"></div>
+                        <div class="field"><label>Overs</label><input type="text" name="detTeam1Overs" value="(18.0)"></div>
+                    </div>
+                    <span class="group-label">Score Card - Team 2</span>
+                    <div class="field-row">
+                        <div class="field"><label>Code</label><input type="text" name="detTeam2Code" value="AUS"></div>
+                        <div class="field"><label>Score</label><input type="text" name="detTeam2Score" value="181-10"></div>
+                        <div class="field"><label>Overs</label><input type="text" name="detTeam2Overs" value="(20.0)"></div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="field"><label>Match Title (Header)</label><input type="text" name="detMatchTitle" value="SL v AUS"></div>
+                    <div class="field"><label>Result Text</label><input type="text" name="detMatchResult" value="SL beat AUS by 8 wickets"></div>
+                    <div class="divider"></div>
+                    <div class="field"><label>Won Title</label><input type="text" name="detWonTitle" value="You have won in 1 contests!"></div>
+                    <div class="field"><label>Won Amount</label><input type="text" name="detWonAmount" value="₹3918609"></div>
+                    <div class="divider"></div>
+                    <div class="field-row">
+                        <div class="field"><label>Contest Prize</label><input type="text" name="detContestPrize" value="₹2.42 Crores"></div>
+                        <div class="field"><label>Entry Fee</label><input type="text" name="detEntryFee" value="₹49"></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field"><label>Top Prize</label><input type="text" name="detTopPrize" value="₹39.18 L"></div>
+                        <div class="field"><label>Win %</label><input type="text" name="detWinPct" value="61%"></div>
+                    </div>
+                    <div class="field"><label>Total Spots</label><input type="text" name="detSpots" value="572891 Spots"></div>
+                    <div class="divider"></div>
+                    <span class="group-label">Leaderboard - User 1 (Winner)</span>
+                    <div class="field-row">
+                        <div class="field"><label>Username</label><input type="text" name="detUser1Name" value="User212621"></div>
+                        <div class="field"><label>Rank</label><input type="text" name="detUser1Rank" value="#1"></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field"><label>Won Text</label><input type="text" name="detUser1Won" value="You've won ₹3918560" oninput="syncWonAmounts()"></div>
+                        <div class="field"><label>Points</label><input type="text" name="detUser1Points" value="1292.5"></div>
+                    </div>
+                    <span class="group-label">Leaderboard - User 2</span>
+                    <div class="field-row">
+                        <div class="field"><label>Username</label><input type="text" name="detUser2Name" value="User212621"></div>
+                        <div class="field"><label>Rank</label><input type="text" name="detUser2Rank" value="#320212"></div>
+                    </div>
+                    <div class="field-row">
+                        <div class="field"><label>Won Text</label><input type="text" name="detUser2Won" value="You've won ₹49" oninput="syncWonAmounts()"></div>
+                        <div class="field"><label>Points</label><input type="text" name="detUser2Points" value="821.5"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SPORTS PAGE PROMO BANNER -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Sports Page - Promo Banner <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field">
+                        <label>Promo Banner Image</label>
+                        <div class="drop-zone">
+                            <input type="file" id="sportsPromoBannerFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="sportsPromoBannerPreview"><img id="sportsPromoBannerPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="sportsPromoBannerRemove" onclick="removeImage('sportsPromoBannerImage','sportsPromoBannerPreview','sportsPromoBannerRemove','sportsPromoBannerFile')">Remove image</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HOMEPAGE MATCH CARDS -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Homepage - Match Cards <span class="arrow">&#9660;</span></div>
+                <div class="section-body" id="match-cards-admin">
+                    <div class="field">
+                        <label>Number of Matches</label>
+                        <select id="numMatches" onchange="updateMatchFields()" style="background: #0f111a; border: 1px solid #2a3245; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; width: 100%;">
+                            <option value="1">1 Match</option>
+                            <option value="2" selected>2 Matches</option>
+                            <option value="3">3 Matches</option>
+                            <option value="4">4 Matches</option>
+                            <option value="5">5 Matches</option>
+                        </select>
+                    </div>
+                    <div class="divider"></div>
+                    <div id="match-fields-container"></div>
+                </div>
+            </div>
+
+        </form>
+    </div>
+
+    <div class="btn-container">
+        <button type="button" class="btn btn-save" onclick="saveData()">Save</button>
+        <button type="button" class="btn btn-preview" onclick="window.location.href='index.html'">Preview</button>
+        <button type="button" class="btn btn-reset" onclick="resetData()">Reset</button>
+    </div>
+
+    <div class="toast" id="toast">Saved!</div>
+
+    <script>
+        // Temporary holder for base64 image data
+        var pendingImages = {};
+
+        // Country-to-Flag mapping for live preview
+        var countryFlags = {
+            'IND': 'linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%)',
+            'AUS': 'radial-gradient(circle at 30% 30%, #012169 40%, #012169 60%)',
+            'PAK': 'linear-gradient(135deg, #006600 30%, #ffffff 30%, #ffffff 70%, #006600 70%)',
+            'ENG': 'linear-gradient(to right, white 100%)',
+            'SA': 'linear-gradient(135deg, #007749 40%, #FFB612 40%, #FFB612 60%, #007749 60%)',
+            'NAM': 'linear-gradient(135deg, #003580 25%, #c8102e 25%, #c8102e 50%, #138808 50%, #138808 75%, #ffd700 75%)',
+            'ZIM': 'linear-gradient(to bottom, #138808 20%, #ffd700 20%, #ffd700 40%, #d40000 40%, #d40000 60%, #000000 60%)',
+            'AFG': 'linear-gradient(to bottom, #000000 33%, #d32011 33%, #d32011 66%, #138808 66%)',
+            'IRE': 'linear-gradient(to right, #169b62 33%, white 33%, white 66%, #ff883e 66%)',
+            'NZ': 'linear-gradient(135deg, #000000 40%, #ffffff 40%)',
+            'SL': 'linear-gradient(135deg, #800000 50%, #f1c40f 50%)',
+            'WI': 'linear-gradient(to bottom, #7B0041 50%, #FFD700 50%)',
+            'BAN': 'linear-gradient(to right, #006a4e 50%, #f42a41 50%)',
+            'OMA': 'linear-gradient(to bottom, white 33%, red 33%, red 66%, green 66%)',
+            'UAE': 'linear-gradient(to right, #00732f 25%, white 25%, white 50%, black 50%, black 75%, #ff0000 75%)',
+            'NEP': 'linear-gradient(135deg, #003893 20%, #dc143c 20%)',
+            'USA': 'repeating-linear-gradient(180deg, #B22234, #B22234 2px, #ffffff 2px, #ffffff 4px)',
+            'SCO': 'linear-gradient(135deg, #0065bd 50%, white 50%)',
+            'NED': 'linear-gradient(to bottom, #c8102e 33%, white 33%, white 66%, #003DA5 66%)',
+            'PNG': 'linear-gradient(135deg, #000000 50%, #ce1126 50%)',
+            'KEN': 'linear-gradient(to bottom, #000000 20%, #006600 20%, #006600 40%, white 40%, white 60%, #006600 60%, #006600 80%, #000000 80%)',
+            'CAN': 'linear-gradient(to right, #ff0000 25%, #ffffff 25%, #ffffff 75%, #ff0000 75%)'
+        };
+
+        var countryNames = {
+            'IND': 'India', 'AUS': 'Australia', 'PAK': 'Pakistan', 'ENG': 'England',
+            'SA': 'South Africa', 'NZ': 'New Zealand', 'SL': 'Sri Lanka', 'WI': 'West Indies',
+            'BAN': 'Bangladesh', 'AFG': 'Afghanistan', 'IRE': 'Ireland', 'ZIM': 'Zimbabwe',
+            'NAM': 'Namibia', 'OMA': 'Oman', 'UAE': 'UAE', 'NEP': 'Nepal',
+            'USA': 'USA', 'SCO': 'Scotland', 'NED': 'Netherlands', 'PNG': 'Papua New Guinea',
+            'KEN': 'Kenya', 'CAN': 'Canada'
+        };
+
+        var countryColors = {
+            'IND': '#138808', 'AUS': '#012169', 'PAK': '#006600', 'ENG': '#ffffff',
+            'SA': '#007749', 'NZ': '#000000', 'SL': '#800000', 'WI': '#7B0041',
+            'BAN': '#006a4e', 'AFG': '#d32011', 'IRE': '#169b62', 'ZIM': '#138808',
+            'NAM': '#003580', 'OMA': '#ff0000', 'UAE': '#00732f', 'NEP': '#dc143c',
+            'USA': '#B22234', 'SCO': '#0065bd', 'NED': '#c8102e', 'PNG': '#ce1126',
+            'KEN': '#006600', 'CAN': '#ff0000'
+        };
+
+        var countryISO = {
+            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
+            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
+            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
+            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
+            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
+        };
+
+        // Auto-fill Full Name and Flag Color when typing a country code
+        function autoFillCountry(codeInputName) {
+            var codeInput = document.querySelector('input[name="' + codeInputName + '"]');
+            if (!codeInput) return;
+            var code = codeInput.value.toUpperCase().trim();
+            codeInput.value = code;
+
+            var nameInputName = codeInputName.replace('Code', 'Name');
+            var colorInputName = codeInputName.replace('Code', 'Color');
+            var nameInput = document.querySelector('input[name="' + nameInputName + '"]');
+            var colorInput = document.querySelector('input[name="' + colorInputName + '"]');
+
+            if (countryNames[code]) {
+                if (nameInput) nameInput.value = countryNames[code];
+                if (colorInput) colorInput.value = countryColors[code] || '#000000';
+            } else if (!code) {
+                // Clear name when code is emptied
+                if (nameInput) nameInput.value = '';
+            }
+        }
+
+        function toggleSection(header) {
+            header.classList.toggle('collapsed');
+            header.nextElementSibling.classList.toggle('hidden');
+        }
+
+        // File picker handlers — converts image to base64, supports drag & drop
+        function handleFile(file, dataKey, previewId, imgId, removeId) {
+            if (!file || !file.type.startsWith('image/')) return;
+            var reader = new FileReader();
+            reader.onload = function(ev) {
+                pendingImages[dataKey] = ev.target.result;
+                showPreview(previewId, imgId, removeId, ev.target.result);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function setupFilePicker(fileInputId, dataKey, previewId, imgId, removeId) {
+            var fileInput = document.getElementById(fileInputId);
+            var dropZone = fileInput.closest('.drop-zone');
+
+            // Click to browse
+            dropZone.addEventListener('click', function() { fileInput.click(); });
+
+            // File input change
+            fileInput.addEventListener('change', function(e) {
+                handleFile(e.target.files[0], dataKey, previewId, imgId, removeId);
+            });
+
+            // Drag & drop
+            dropZone.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            });
+            dropZone.addEventListener('dragleave', function() {
+                dropZone.classList.remove('dragover');
+            });
+            dropZone.addEventListener('drop', function(e) {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                handleFile(e.dataTransfer.files[0], dataKey, previewId, imgId, removeId);
+            });
+        }
+        // Carousel image pickers
+        for (var _ci = 0; _ci < 5; _ci++) {
+            (function(i) {
+                var fileInput = document.getElementById('carousel' + i + 'File');
+                var dropZone = document.getElementById('carousel' + i + 'DropZone');
+                dropZone.addEventListener('click', function() { fileInput.click(); });
+                fileInput.addEventListener('change', function(e) {
+                    var file = e.target.files[0];
+                    if (!file || !file.type.startsWith('image/')) return;
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        pendingImages['carouselImage_' + i] = ev.target.result;
+                        var wrap = document.getElementById('carousel' + i + 'Preview');
+                        var img = document.getElementById('carousel' + i + 'PreviewImg');
+                        var rem = document.getElementById('carousel' + i + 'Remove');
+                        img.src = ev.target.result;
+                        wrap.style.display = 'block';
+                        rem.style.display = 'inline';
+                    };
+                    reader.readAsDataURL(file);
+                });
+                dropZone.addEventListener('dragover', function(e) { e.preventDefault(); dropZone.classList.add('dragover'); });
+                dropZone.addEventListener('dragleave', function() { dropZone.classList.remove('dragover'); });
+                dropZone.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    dropZone.classList.remove('dragover');
+                    var file = e.dataTransfer.files[0];
+                    if (!file || !file.type.startsWith('image/')) return;
+                    var reader = new FileReader();
+                    reader.onload = function(ev) {
+                        pendingImages['carouselImage_' + i] = ev.target.result;
+                        var wrap = document.getElementById('carousel' + i + 'Preview');
+                        var img = document.getElementById('carousel' + i + 'PreviewImg');
+                        var rem = document.getElementById('carousel' + i + 'Remove');
+                        img.src = ev.target.result;
+                        wrap.style.display = 'block';
+                        rem.style.display = 'inline';
+                    };
+                    reader.readAsDataURL(file);
+                });
+            })(_ci);
+        }
+        setupFilePicker('detBannerFile', 'detBannerImage', 'detBannerPreview', 'detBannerPreviewImg', 'detBannerRemove');
+        setupFilePicker('catExploreFile', 'catExploreImg', 'catExplorePreview', 'catExplorePreviewImg', 'catExploreRemove');
+        setupFilePicker('catSportsFile', 'catSportsImg', 'catSportsPreview', 'catSportsPreviewImg', 'catSportsRemove');
+        setupFilePicker('catCasinoFile', 'catCasinoImg', 'catCasinoPreview', 'catCasinoPreviewImg', 'catCasinoRemove');
+        setupFilePicker('catRummyFile', 'catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove');
+        setupFilePicker('catJackpotFile', 'catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove');
+        setupFilePicker('sportsPromoBannerFile', 'sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove');
+
+        function showPreview(previewId, imgId, removeId, src) {
+            var wrap = document.getElementById(previewId);
+            var img = document.getElementById(imgId);
+            var rem = document.getElementById(removeId);
+            img.src = src;
+            wrap.style.display = 'block';
+            rem.style.display = 'inline';
+        }
+
+        function removeImage(dataKey, previewId, removeId, fileInputId) {
+            pendingImages[dataKey] = '';
+            document.getElementById(previewId).style.display = 'none';
+            document.getElementById(removeId).style.display = 'none';
+            document.getElementById(fileInputId).value = '';
+        }
+
+        function removeCarouselImage(i) {
+            pendingImages['carouselImage_' + i] = '';
+            document.getElementById('carousel' + i + 'Preview').style.display = 'none';
+            document.getElementById('carousel' + i + 'Remove').style.display = 'none';
+            document.getElementById('carousel' + i + 'File').value = '';
+        }
+
+        function syncWonAmounts() {
+            var u1 = document.querySelector('input[name="detUser1Won"]').value;
+            var u2 = document.querySelector('input[name="detUser2Won"]').value;
+            var n1 = parseInt((u1.match(/[\d]+/) || ['0'])[0]) || 0;
+            var n2 = parseInt((u2.match(/[\d]+/) || ['0'])[0]) || 0;
+            var total = n1 + n2;
+            document.querySelector('input[name="detWonAmount"]').value = '\u20B9' + total;
+            document.querySelector('input[name="wonAmount"]').value = 'Won \u20B9' + total;
+        }
+
+        // Cache of last loaded admin data (used by updateMatchFields)
+        var _adminData = {};
+
+        function loadData() {
+            comeDB.once('value', function(snapshot) {
+                var data = snapshot.val() || {};
+                _adminData = data;
+                var form = document.getElementById('adminForm');
+                var inputs = form.querySelectorAll('input[name]');
+                inputs.forEach(function(input) {
+                    if (data[input.name] !== undefined) {
+                        input.value = data[input.name];
+                    }
+                });
+                // Load carousel images
+                if (data.carouselImages && data.carouselImages.length) {
+                    data.carouselImages.forEach(function(img, i) {
+                        if (img && i < 5) {
+                            pendingImages['carouselImage_' + i] = img;
+                            var wrap = document.getElementById('carousel' + i + 'Preview');
+                            var imgEl = document.getElementById('carousel' + i + 'PreviewImg');
+                            var rem = document.getElementById('carousel' + i + 'Remove');
+                            imgEl.src = img;
+                            wrap.style.display = 'block';
+                            rem.style.display = 'inline';
+                        }
+                    });
+                }
+                // Load saved image previews
+                var imgFields = [
+                    ['detBannerImage', 'detBannerPreview', 'detBannerPreviewImg', 'detBannerRemove'],
+                    ['catExploreImg', 'catExplorePreview', 'catExplorePreviewImg', 'catExploreRemove'],
+                    ['catSportsImg', 'catSportsPreview', 'catSportsPreviewImg', 'catSportsRemove'],
+                    ['catCasinoImg', 'catCasinoPreview', 'catCasinoPreviewImg', 'catCasinoRemove'],
+                    ['catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove'],
+                    ['catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove'],
+                    ['sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove']
+                ];
+                imgFields.forEach(function(f) {
+                    if (data[f[0]]) {
+                        pendingImages[f[0]] = data[f[0]];
+                        showPreview(f[1], f[2], f[3], data[f[0]]);
+                    }
+                });
+
+                // Load number of matches, then render match fields with loaded data
+                if (data.matchCards && data.matchCards.length > 0) {
+                    document.getElementById('numMatches').value = data.matchCards.length;
+                }
+                updateMatchFields();
+            });
+        }
+
+        function saveData() {
+            var data = {};
+            var form = document.getElementById('adminForm');
+            var inputs = form.querySelectorAll('input[name]');
+            inputs.forEach(function(input) {
+                data[input.name] = input.value;
+            });
+            // Merge all image data (skip carouselImage_* - handled separately)
+            Object.keys(pendingImages).forEach(function(key) {
+                if (pendingImages[key] !== undefined && key.indexOf('carouselImage_') !== 0) {
+                    data[key] = pendingImages[key];
+                }
+            });
+            // Build carouselImages array
+            var carouselImages = [];
+            for (var ci = 0; ci < 5; ci++) {
+                var img = pendingImages['carouselImage_' + ci];
+                if (img) carouselImages.push(img);
+            }
+            data.carouselImages = carouselImages;
+
+            // Save match cards data
+            var numMatches = parseInt(document.getElementById('numMatches').value);
+            var matchCards = [];
+            for (var i = 0; i < numMatches; i++) {
+                var team1 = document.getElementById('match' + i + '_team1').value.toUpperCase();
+                var team2 = document.getElementById('match' + i + '_team2').value.toUpperCase();
+                if (team1 && team2) { // Only save if both teams are entered
+                    matchCards.push({
+                        team1Code: team1,
+                        team2Code: team2,
+                        league: document.getElementById('match' + i + '_league').value || 'ICC Men\'s T20 World Cup, 2026',
+                        timeLabel: document.getElementById('match' + i + '_timeLabel').value || 'Tomorrow',
+                        time: document.getElementById('match' + i + '_time').value || '7:00 PM',
+                        prize: document.getElementById('match' + i + '_prize').value || '₹42.31M',
+                        showCountdown: document.getElementById('match' + i + '_countdown').checked
+                    });
+                }
+            }
+            data.matchCards = matchCards;
+
+            comeDB.set(data).then(function() {
+                showToast('Saved to cloud ✓');
+            }).catch(function(err) {
+                showToast('Save failed: ' + err.message);
+            });
+        }
+
+        function resetData() {
+            if (confirm('Reset all data to defaults? This will clear your saved edits.')) {
+                comeDB.remove().then(function() {
+                    pendingImages = {};
+                    window.location.reload();
+                });
+            }
+        }
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 2000);
+        }
+
+        // Match Cards Management
+        function updateFlagPreview(matchIndex, team) {
+            var inputId = 'match' + matchIndex + '_' + team;
+            var input = document.getElementById(inputId);
+            var flagPreview = document.getElementById(inputId + '_flag');
+            var namePreview = document.getElementById(inputId + '_name');
+
+            if (!input || !flagPreview || !namePreview) return;
+
+            var code = input.value.toUpperCase().trim();
+
+            var iso = countryISO[code];
+            if (code && iso) {
+                // Valid country code - show real flag image
+                flagPreview.style.background = 'url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso + '.svg) center/cover no-repeat';
+                namePreview.textContent = countryNames[code] || code;
+                namePreview.style.color = '#8b9bb4';
+                input.classList.remove('invalid-country');
+                input.classList.add('valid-country');
+            } else if (code && countryFlags[code]) {
+                // Known code but no ISO - use gradient fallback
+                flagPreview.style.background = countryFlags[code];
+                namePreview.textContent = countryNames[code] || code;
+                namePreview.style.color = '#8b9bb4';
+                input.classList.remove('invalid-country');
+                input.classList.add('valid-country');
+            } else if (code) {
+                // Invalid country code
+                flagPreview.style.background = '#1e2536';
+                namePreview.textContent = 'Unknown country';
+                namePreview.style.color = '#e74c3c';
+                input.classList.remove('valid-country');
+                input.classList.add('invalid-country');
+            } else {
+                // Empty input
+                flagPreview.style.background = '#0f111a';
+                namePreview.textContent = '';
+                input.classList.remove('valid-country', 'invalid-country');
+            }
+
+            // Auto-uppercase the input
+            input.value = code;
+        }
+
+        function updateMatchFields() {
+            var numMatches = parseInt(document.getElementById('numMatches').value);
+            var container = document.getElementById('match-fields-container');
+            container.innerHTML = '';
+
+            for (var i = 0; i < numMatches; i++) {
+                var matchHtml = `
+                    <div style="background: #1a2138; padding: 12px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="color: #f1c40f; font-weight: 600; font-size: 11px; margin-bottom: 10px;">MATCH ${i + 1}</div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Team 1 Code</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="text" id="match${i}_team1" placeholder="e.g. IND"
+                                           onkeyup="updateFlagPreview(${i}, 'team1')"
+                                           style="text-transform: uppercase; flex: 1;">
+                                    <div id="match${i}_team1_flag" class="flag-preview-circle"></div>
+                                </div>
+                                <div id="match${i}_team1_name" class="country-name-preview"></div>
+                            </div>
+                            <div class="field">
+                                <label>Team 2 Code</label>
+                                <div style="display: flex; gap: 10px; align-items: center;">
+                                    <input type="text" id="match${i}_team2" placeholder="e.g. PAK"
+                                           onkeyup="updateFlagPreview(${i}, 'team2')"
+                                           style="text-transform: uppercase; flex: 1;">
+                                    <div id="match${i}_team2_flag" class="flag-preview-circle"></div>
+                                </div>
+                                <div id="match${i}_team2_name" class="country-name-preview"></div>
+                            </div>
+                        </div>
+                        <div class="field">
+                            <label>League Name</label>
+                            <input type="text" id="match${i}_league" placeholder="ICC Men's T20 World Cup, 2026">
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Time Label</label>
+                                <input type="text" id="match${i}_timeLabel" placeholder="Tomorrow / Today / 1h 02m">
+                            </div>
+                            <div class="field">
+                                <label>Match Time</label>
+                                <input type="text" id="match${i}_time" placeholder="7:00 PM">
+                            </div>
+                        </div>
+                        <div class="field-row">
+                            <div class="field">
+                                <label>Prize Amount</label>
+                                <input type="text" id="match${i}_prize" placeholder="₹42.31M">
+                            </div>
+                            <div class="field">
+                                <label style="display: flex; align-items: center; gap: 8px; margin-top: 20px;">
+                                    <input type="checkbox" id="match${i}_countdown" style="width: auto; height: 18px; cursor: pointer;">
+                                    <span style="text-transform: none; font-size: 12px;">Show Countdown (Red Timer)</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += matchHtml;
+            }
+
+            // Load saved match data if exists
+            var savedData = _adminData;
+            if (savedData.matchCards && savedData.matchCards.length > 0) {
+                savedData.matchCards.forEach(function(match, idx) {
+                    if (idx < numMatches) {
+                        document.getElementById('match' + idx + '_team1').value = match.team1Code || '';
+                        document.getElementById('match' + idx + '_team2').value = match.team2Code || '';
+                        document.getElementById('match' + idx + '_league').value = match.league || '';
+                        document.getElementById('match' + idx + '_timeLabel').value = match.timeLabel || '';
+                        document.getElementById('match' + idx + '_time').value = match.time || '';
+                        document.getElementById('match' + idx + '_prize').value = match.prize || '';
+                        document.getElementById('match' + idx + '_countdown').checked = match.showCountdown || false;
+
+                        // Trigger flag preview updates
+                        updateFlagPreview(idx, 'team1');
+                        updateFlagPreview(idx, 'team2');
+                    }
+                });
+            }
+        }
+
+        loadData(); // updateMatchFields() is called inside loadData's Firebase callback
+
+        // Trigger auto-fill for all code fields on page load
+        ['matchTeam1Code','matchTeam2Code','wonTeam1Code','wonTeam2Code',
+         'sp1Team1Code','sp1Team2Code','sp2Team1Code','sp2Team2Code'].forEach(function(name) {
+            autoFillCountry(name);
+        });
+    </script>
+</body>
+</html>

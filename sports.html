@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Come Sports - Live Update</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lobster&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+
+    <style>
+        /* --- SAME BASIC STYLES AS BEFORE --- */
+        :root {
+            --bg-dark: #0f111a;
+            --bg-light: #f5f7fa;
+            --text-white: #ffffff;
+            --accent-green: #2ecc71;
+            --won-green: #00c853; /* Specific green for won amount */
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-light); padding-bottom: 70px; }
+        .top-section-dark { background-color: var(--bg-dark); color: white; padding-bottom: 20px; }
+        header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background-color: var(--bg-dark); }
+        .logo { font-family: 'Lobster', cursive; font-size: 28px; color: white; letter-spacing: 1px; }
+        .balance-container { display: flex; align-items: center; background-color: #1c2230; padding: 6px 12px; border-radius: 20px; gap: 8px; border: 1px solid #2a3245; }
+        .flag-icon { width: 20px; height: 14px; background: linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%); border-radius: 2px; }
+        .balance-text { font-size: 14px; font-weight: 700; color: white; }
+        .header-actions { display: flex; gap: 12px; align-items: center; }
+        .wallet-btn { background: linear-gradient(135deg, #ff8c42, #ff5e00); padding: 8px 12px; border-radius: 12px; color: white; }
+        .icon-btn { position: relative; font-size: 20px; color: #8b9bb4; }
+        .badge { position: absolute; top: -5px; right: -5px; background-color: #ff4757; color: white; font-size: 10px; border-radius: 50%; width: 16px; height: 16px; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-dark); }
+        .categories { 
+            display: flex; align-items: center; padding: 12px 16px; padding-right: 155px; 
+            overflow-x: auto; gap: 28px; position: relative; scrollbar-width: none; background-color: var(--bg-dark);
+        }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #6b7280; font-size: 13px; font-weight: 500; cursor: pointer; }
+        .cat-item.active { color: #ffffff; }
+        .cat-icon { display: flex; align-items: center; justify-content: center; height: 32px; }
+        .cat-icon img { width: 32px; height: auto; max-height: 32px; filter: grayscale(100%) brightness(0.9); opacity: 0.8; object-fit: contain; transition: all 0.3s; }
+        .cat-item.active .cat-icon img { filter: grayscale(0%) brightness(1.1); opacity: 1; }
+        .jackpot-banner-small { width: 150px; height: 55px; position: absolute; right: 0; top: 50%; transform: translateY(-50%); border-radius: 0; background-size: cover; background-position: left center; background-repeat: no-repeat; z-index: 10; }
+        .page-title { padding: 14px 16px; font-size: 16px; font-weight: 800; display: flex; align-items: center; color: white; background: linear-gradient(90deg, #2a0815 0%, #0f111a 40%); }
+        .promo-banner { margin: 10px 16px; height: 100px; background: linear-gradient(90deg, #0d47a1, #42a5f5); border-radius: 12px; position: relative; overflow: hidden; display: flex; align-items: center; padding-left: 20px; }
+        .banner-text h3 { font-size: 10px; color: #f1c40f; text-transform: uppercase; margin-bottom: 4px; }
+        .banner-text h2 { font-size: 18px; font-weight: 800; font-style: italic; }
+        .player-group { position: absolute; right: 0; bottom: 0; height: 110%; width: 150px; background: url('https://placehold.co/150x100/png?text=Players') no-repeat center bottom; background-size: contain; }
+        .section-header-dark { padding: 0 16px; margin-top: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; display: none; }
+        .view-all-light { font-size: 12px; color: #ccc; text-decoration: none; }
+
+        /* --- NEW STYLES FOR THE ANIMATION & WON CARD --- */
+
+        /* Container for the swapping cards */
+        #my-matches-container {
+            margin: 0 16px 20px 16px;
+            position: relative;
+            min-height: 80px; /* Ensure space for the final card */
+        }
+
+        /* The Initial Green Card */
+        #initial-party-card {
+            height: 60px;
+            background-color: #1e8e3e;
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            width: 100%;
+            position: absolute; /* Stack them */
+            top: 0; left: 0;
+            transition: opacity 0.3s ease-out;
+        }
+
+        /* The Final "Won" Card (Hidden initially) */
+        #won-match-card {
+            background-color: #1c2230; /* Dark background */
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px solid #2a3245;
+            display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer;
+
+            /* Initial hidden state for animation */
+            opacity: 0;
+            transform: scale(0.8);
+            pointer-events: none; /* Prevent interaction while hidden */
+        }
+
+        /* The Popping Animation Definition */
+        @keyframes pop-in-animate {
+            0% { opacity: 0; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.05); } /* Overshoot slighty for "pop" */
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* Class to trigger animation */
+        .trigger-pop {
+            animation: pop-in-animate 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            pointer-events: auto !important;
+        }
+
+        /* Styles inside the Won Card */
+        .won-teams-left { display: flex; flex-direction: column; gap: 10px; }
+        .won-team-row { display: flex; align-items: center; gap: 10px; }
+        .flag-circle-small { width: 20px; height: 20px; border-radius: 50%; background-color: #555; overflow: hidden; position: relative;}
+        /* Simple CSS flags for PAK/USA */
+        .flag-pak { background-color: #006600; } .flag-pak::after { content: '☾★'; color:white; font-size: 8px; position: absolute; top: 3px; left: 5px;}
+        .flag-usa { background: repeating-linear-gradient(180deg, #B22234, #B22234 2px, #ffffff 2px, #ffffff 4px); }
+        .won-t-code { font-weight: 700; font-size: 14px; color: white; width: 35px; }
+        .won-t-name { font-size: 12px; color: #8b9bb4; }
+
+        .won-status-right { text-align: right; display: flex; flex-direction: column; justify-content: center; gap: 4px;}
+        .match-date { font-size: 11px; color: #8b9bb4; }
+        .match-status { font-size: 12px; color: var(--accent-green); font-weight: 600; }
+        .won-amount { font-size: 15px; font-weight: 800; color: var(--won-green); }
+
+
+        /* --- WHITE SECTION STYLES (Unchanged) --- */
+        .white-section { background-color: #ffffff; padding-top: 0; min-height: 500px; }
+        .tabs-container { display: flex; align-items: center; padding: 16px 16px 0 16px; border-bottom: none; background: white; margin-bottom: 12px; position: sticky; top: 0; z-index: 10; gap: 12px; }
+        .tab-separator { width: 1px; height: 12px; background-color: #f3f4f6; margin-bottom: 8px; }
+        .tab { font-size: 15px; font-weight: 500; color: #6b7280; padding-bottom: 8px; cursor: pointer; }
+        .tab.active { color: #dc2626; font-weight: 600; border-bottom: none; }
+        .match-card-white { background: #ffffff; margin: 12px 16px; border-radius: 12px; padding: 16px; border: 1px solid #e5e7eb; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
+        .bottom-nav-white { position: fixed; bottom: 0; width: 100%; background-color: white; display: flex; justify-content: space-around; padding: 10px 0 16px 0; border-top: 1px solid #f3f4f6; z-index: 1000; }
+        .b-nav-item { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #9ca3af; font-size: 11px; font-weight: 500; cursor: pointer; }
+        .b-nav-item i { font-size: 24px; margin-bottom: 2px; }
+        .b-nav-item.active { color: #dc2626; }
+
+        /* --- MOBILE STATUS BAR --- */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 16px;
+            background-color: var(--bg-dark);
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .status-bar-left { display: flex; align-items: center; gap: 6px; }
+        .status-bar-time { font-size: 13px; font-weight: 700; }
+        .status-bar-right { display: flex; align-items: center; gap: 6px; }
+        .status-bar-right i { font-size: 13px; color: #ffffff; }
+        .battery-container { display: flex; align-items: center; gap: 3px; }
+        .battery-icon { width: 22px; height: 11px; border: 1.5px solid #ffffff; border-radius: 2px; position: relative; display: flex; align-items: center; padding: 1px; }
+        .battery-icon::after { content: ''; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); width: 2px; height: 5px; background: #ffffff; border-radius: 0 1px 1px 0; }
+        .battery-fill { height: 100%; width: 80%; background: #ffffff; border-radius: 1px; }
+        .battery-pct { font-size: 11px; font-weight: 600; }
+        .signal-bars { display: flex; align-items: flex-end; gap: 1px; height: 12px; }
+        .signal-bars .bar { width: 3px; background: #ffffff; border-radius: 1px; }
+        .signal-bars .bar:nth-child(1) { height: 3px; }
+        .signal-bars .bar:nth-child(2) { height: 5px; }
+        .signal-bars .bar:nth-child(3) { height: 8px; }
+        .signal-bars .bar:nth-child(4) { height: 11px; }
+    </style>
+</head>
+<body>
+
+    <div class="top-section-dark">
+        <div class="status-bar">
+            <div class="status-bar-left">
+                <span class="status-bar-time" id="status-time">10:55</span>
+                <i class="fas fa-gear" style="font-size: 11px; color: #aaa;"></i>
+            </div>
+            <div class="status-bar-right">
+                <i class="fas fa-wifi"></i>
+                <div class="signal-bars">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+                <div class="battery-container">
+                    <div class="battery-icon"><div class="battery-fill"></div></div>
+                    <span class="battery-pct">82</span>
+                </div>
+            </div>
+        </div>
+
+        <header>
+            <div class="logo">Come</div>
+            <div class="balance-container">
+                <div class="flag-icon"></div>
+                <span class="balance-text" data-field="balance">3918611</span>
+                <i class="fas fa-chevron-down" style="font-size: 10px; color: #888;"></i>
+            </div>
+            <div class="header-actions">
+                <div class="wallet-btn"><i class="fas fa-wallet"></i></div>
+                <div class="icon-btn"><i class="fas fa-gift"></i><div class="badge">1</div></div>
+                <div class="icon-btn"><i class="fas fa-user-circle profile-icon"></i><div class="badge">12</div></div>
+            </div>
+        </header>
+
+        <nav class="categories">
+            <a href="index.html" style="text-decoration: none;">
+                <div class="cat-item">
+                    <div class="cat-icon"><img id="cat-explore-img" src="assets/icons/explore.png" alt="Explore"></div>
+                    <span>Explore</span>
+                </div>
+            </a>
+            <a href="sports.html" style="text-decoration: none;">
+                <div class="cat-item active">
+                    <div class="cat-icon"><img id="cat-sports-img" src="assets/icons/sports.png" alt="Sports"></div>
+                    <span>Sports</span>
+                </div>
+            </a>
+            <div class="cat-item">
+                <div class="cat-icon"><img id="cat-casino-img" src="assets/icons/casino.png" alt="Casino"></div>
+                <span>Casino</span>
+            </div>
+            <div class="cat-item">
+                <div class="cat-icon"><img id="cat-rummy-img" src="assets/icons/rummy.png" alt="Rummy"></div>
+                <span>Rummy</span>
+            </div>
+            <div class="jackpot-banner-small" id="jackpot-banner" style="background-image: url('assets/icons/jackpot-banner.png');"></div>
+        </nav>
+
+        <div class="page-title">
+            <div style="display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; margin-right: 8px;">
+                <svg viewBox="0 0 64 64" width="100%" height="100%">
+                    <path d="M 16 14 C 16 35, 26 46, 32 54 C 38 46, 48 35, 48 14 Z" fill="transparent" stroke="#ffffff" stroke-width="3"/>
+                    <path d="M 23 15 C 23 32, 28 41, 32 47 C 36 41, 41 32, 41 15 Z" fill="#ffffff"/>
+                    <text x="32" y="38" fill="#180515" font-family="'Inter', sans-serif" font-weight="900" font-size="28" text-anchor="middle">C</text>
+                    <path d="M 26 56 L 38 56 L 40 60 L 24 60 Z" fill="#ffffff"/>
+                </svg>
+            </div>
+            COME SPORTS
+        </div>
+
+        <div class="promo-banner" id="sports-promo-banner" style="margin-bottom: 12px; border-radius: 8px;">
+            <div class="banner-text"><h3>COME TO TRUST</h3><h2><i class="fas fa-shield-alt"></i> COME SPORTS</h2></div>
+            <div class="player-group"></div>
+        </div>
+        <div style="text-align: center; font-size: 12px; color: #d1d5db; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
+            <div style="background: #f1c40f; color: black; font-size: 10px; font-weight: bold; width: 14px; height: 14px; border-radius: 3px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);">%</div>
+            15% off, up to ₹7 per match*
+        </div>
+
+        <div id="my-matches-container" style="display: none;"></div>
+         </div>
+
+    <div class="white-section">
+        <div class="tabs-container">
+            <div class="tab active">Recommended</div>
+            <div class="tab-separator"></div>
+            <div class="tab">Starting Soon</div>
+            <div class="tab-separator"></div>
+            <div class="tab">Popular</div>
+        </div>
+        <div id="sports-match-cards-container"></div>
+        <div style="height: 20px;"></div>
+    </div>
+
+    <nav class="bottom-nav-white">
+        <div class="b-nav-item active">
+            <svg style="width:28px;height:28px;margin-bottom:2px;" viewBox="0 0 64 64">
+                <path d="M 22 22 L 8 16 L 14 28 L 6 34 L 14 42 L 10 50 L 24 42 Z" fill="#e34848"/>
+                <path d="M 42 22 L 56 16 L 50 28 L 58 34 L 50 42 L 54 50 L 40 42 Z" fill="#e34848"/>
+                <path d="M 18 12 L 46 12 C 46 36, 38 48, 32 54 C 26 48, 18 36, 18 12 Z" fill="#e34848"/>
+                <path d="M 26 58 L 38 58 L 42 62 L 22 62 Z" fill="#e34848"/>
+                <text x="32" y="40" fill="white" font-family="'Inter', sans-serif" font-weight="900" font-size="32" text-anchor="middle">C</text>
+            </svg>
+            <span style="font-weight: 700; color: #e34848;">Home</span>
+        </div>
+        <div class="b-nav-item">
+            <svg style="width:28px;height:28px;margin-bottom:2px;" viewBox="0 0 64 64">
+                <path d="M 32 10 Q 56 0 62 16 Q 52 24 58 30 Q 48 40 54 48 Q 40 50 28 48 C 12 44, 12 20, 28 14 Z" fill="#8aa1b9"/>
+                <circle cx="28" cy="32" r="16" fill="white" stroke="#8aa1b9" stroke-width="4"/>
+                <path d="M 17 24 Q 26 28 24 43" fill="none" stroke="#8aa1b9" stroke-width="3" stroke-linecap="round"/>
+                <path d="M 37 20 Q 28 28 35 43" fill="none" stroke="#8aa1b9" stroke-width="3" stroke-linecap="round"/>
+            </svg>
+            <span style="font-weight: 600;">My Matches</span>
+        </div>
+        <div class="b-nav-item">
+            <svg style="width:28px;height:28px;margin-bottom:2px;" viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="26" fill="none" stroke="#8aa1b9" stroke-width="5"/>
+                <circle cx="32" cy="32" r="18" fill="#8aa1b9"/>
+                <text x="32" y="42" fill="white" font-family="'Inter', sans-serif" font-weight="900" font-size="28" text-anchor="middle">C</text>
+            </svg>
+            <span style="font-weight: 600;">Rewards</span>
+        </div>
+    </nav>
+
+    <script>
+    comeDB.once('value', function(snapshot) {
+        var d = snapshot.val() || {};
+        if (d && Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
+        // Status bar time from admin
+        var stEl = document.getElementById('status-time');
+        if (stEl && d.statusBarTime) stEl.textContent = d.statusBarTime;
+
+        document.querySelectorAll('[data-field]').forEach(function(el) {
+            if (d[el.dataset.field] !== undefined && d[el.dataset.field] !== '') {
+                el.textContent = d[el.dataset.field];
+            }
+        });
+        document.querySelectorAll('[data-bg]').forEach(function(el) {
+            if (d[el.dataset.bg] !== undefined && d[el.dataset.bg] !== '') {
+                el.style.background = d[el.dataset.bg];
+                el.innerHTML = '';
+            }
+        });
+
+        // Set real flag images for won match teams
+        var wonISO = {
+            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
+            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
+            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
+            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
+            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
+        };
+        ['wonTeam1', 'wonTeam2'].forEach(function(prefix) {
+            var code = d[prefix + 'Code'];
+            var iso = code ? wonISO[code.toUpperCase()] : null;
+            if (iso) {
+                var flagEl = document.querySelector('[data-bg="' + prefix + 'Color"]');
+                if (flagEl) {
+                    flagEl.style.background = 'url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso + '.svg) center/cover no-repeat';
+                }
+            }
+        });
+
+        // Load sports promo banner if uploaded
+        if (d.sportsPromoBannerImage) {
+            var promoBanner = document.getElementById('sports-promo-banner');
+            if (promoBanner) {
+                promoBanner.style.backgroundImage = 'url(' + d.sportsPromoBannerImage + ')';
+                promoBanner.style.backgroundSize = 'cover';
+                promoBanner.style.backgroundPosition = 'center';
+                // Optionally hide the text when image is uploaded
+                var bannerText = promoBanner.querySelector('.banner-text');
+                var playerGroup = promoBanner.querySelector('.player-group');
+                if (bannerText) bannerText.style.display = 'none';
+                if (playerGroup) playerGroup.style.display = 'none';
+            }
+        }
+
+        // Country-to-Flag Mapping
+        var countryFlags = {
+            'IND': 'linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%)',
+            'AUS': 'radial-gradient(circle at 30% 30%, #012169 40%, #012169 60%)',
+            'PAK': 'linear-gradient(135deg, #006600 30%, #ffffff 30%, #ffffff 70%, #006600 70%)',
+            'ENG': 'linear-gradient(to right, white 100%)',
+            'SA': 'linear-gradient(135deg, #007749 40%, #FFB612 40%, #FFB612 60%, #007749 60%)',
+            'NAM': 'linear-gradient(135deg, #003580 25%, #c8102e 25%, #c8102e 50%, #138808 50%, #138808 75%, #ffd700 75%)',
+            'ZIM': 'linear-gradient(to bottom, #138808 20%, #ffd700 20%, #ffd700 40%, #d40000 40%, #d40000 60%, #000000 60%)',
+            'AFG': 'linear-gradient(to bottom, #000000 33%, #d32011 33%, #d32011 66%, #138808 66%)',
+            'IRE': 'linear-gradient(to right, #169b62 33%, white 33%, white 66%, #ff883e 66%)'
+        };
+        var countryNames = {
+            'IND': 'India', 'AUS': 'Australia', 'PAK': 'Pakistan', 'ENG': 'England',
+            'SA': 'South Africa', 'NAM': 'Namibia', 'ZIM': 'Zimbabwe',
+            'AFG': 'Afghanistan', 'IRE': 'Ireland'
+        };
+
+        // Render dynamic match cards
+        renderSportsMatches(d);
+    });
+
+    function renderSportsMatches(d) {
+        if (!d) d = JSON.parse(localStorage.getItem('comeData') || '{}');
+        var matches = [];
+
+        // Build matches from Sports Match Card 1 admin section
+        if (d.sp1Team1Code && d.sp1Team2Code) {
+            matches.push({
+                team1Code: d.sp1Team1Code, team2Code: d.sp1Team2Code,
+                team1Name: d.sp1Team1Name, team2Name: d.sp1Team2Name,
+                team1Color: d.sp1Team1Color, team2Color: d.sp1Team2Color,
+                league: d.sp1League || "T20 · ICC MT20 WC, 2026",
+                timeLabel: d.sp1TimeLabel || 'Tomorrow',
+                time: d.sp1TimeValue || '11:00 AM',
+                prize: d.sp1Prize || '₹1.0 Crores+'
+            });
+        }
+
+        // Build matches from Sports Match Card 2 admin section
+        if (d.sp2Team1Code && d.sp2Team2Code) {
+            matches.push({
+                team1Code: d.sp2Team1Code, team2Code: d.sp2Team2Code,
+                team1Name: d.sp2Team1Name, team2Name: d.sp2Team2Name,
+                team1Color: d.sp2Team1Color, team2Color: d.sp2Team2Color,
+                league: d.sp2League || "T20 · ICC MT20 WC, 2026",
+                timeLabel: d.sp2TimeLabel || 'Tomorrow',
+                time: d.sp2TimeValue || '03:00 PM',
+                prize: d.sp2Prize || '₹1.0 Crores+'
+            });
+        }
+
+        if (matches.length === 0) matches = d.matchCards || [];
+
+        var container = document.getElementById('sports-match-cards-container');
+        if (!container || matches.length === 0) return;
+
+        container.innerHTML = '';
+        matches.forEach(function(match) {
+            container.appendChild(createSportsMatchCard(match));
+        });
+    }
+
+    function createSportsMatchCard(match) {
+        var countryFlags = {
+            'IND': '#ff9933', 'AUS': '#012169', 'PAK': '#006600', 'ENG': '#ffffff',
+            'SA': '#007749', 'NAM': '#003580', 'ZIM': '#138808', 'AFG': '#d32011', 'IRE': '#169b62',
+            'NZ': '#000000', 'SL': '#800000', 'WI': '#7B0041', 'BAN': '#006a4e',
+            'OMA': '#ff0000', 'UAE': '#00732f', 'NEP': '#dc143c', 'USA': '#B22234',
+            'SCO': '#0065bd', 'NED': '#c8102e', 'PNG': '#ce1126', 'KEN': '#006600', 'CAN': '#ff0000'
+        };
+        var countryNames = {
+            'IND': 'India', 'AUS': 'Australia', 'PAK': 'Pakistan', 'ENG': 'England',
+            'SA': 'South Africa', 'NZ': 'New Zealand', 'SL': 'Sri Lanka', 'WI': 'West Indies',
+            'BAN': 'Bangladesh', 'AFG': 'Afghanistan', 'IRE': 'Ireland', 'ZIM': 'Zimbabwe',
+            'NAM': 'Namibia', 'OMA': 'Oman', 'UAE': 'UAE', 'NEP': 'Nepal',
+            'USA': 'USA', 'SCO': 'Scotland', 'NED': 'Netherlands', 'PNG': 'Papua New Guinea',
+            'KEN': 'Kenya', 'CAN': 'Canada'
+        };
+
+        var countryISO = {
+            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
+            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
+            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
+            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
+            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
+        };
+
+        var team1Name = match.team1Name || countryNames[match.team1Code] || match.team1Code;
+        var team2Name = match.team2Name || countryNames[match.team2Code] || match.team2Code;
+
+        var iso1 = countryISO[match.team1Code];
+        var iso2 = countryISO[match.team2Code];
+        var team1FlagStyle = iso1 ?
+            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso1 + '.svg);background-size:cover;background-position:center;' :
+            'background:' + (match.team1Color || countryFlags[match.team1Code] || '#555') + ';';
+        var team2FlagStyle = iso2 ?
+            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso2 + '.svg);background-size:cover;background-position:center;' :
+            'background:' + (match.team2Color || countryFlags[match.team2Code] || '#555') + ';';
+
+        var div = document.createElement('div');
+        div.className = 'match-card-white';
+        div.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <div style="display: flex; align-items: center; gap: 8px; font-weight: 500; color: #4b5563; font-size: 15px;">
+                    <div style="background:#f3f4f6; border-radius:50%; width: 24px; height: 24px; display:flex; align-items:center; justify-content:center;">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="#6b7280"><path d="M3.9 12c0-1.71 1.39-3.1 3.1-3.1h4V7H7c-2.76 0-5 2.24-5 5s2.24 5 5 5h4v-1.9H7c-1.71 0-3.1-1.39-3.1-3.1zM8 13h8v-2H8v2zm9-6h-4v1.9h4c1.71 0 3.1 1.39 3.1 3.1s-1.39 3.1-3.1 3.1h-4V17h4c2.76 0 5-2.24 5-5s-2.24-5-5-5z"/></svg>
+                    </div> 
+                    <span>${match.league} <i class="fas fa-chevron-right" style="font-size: 11px; color: #9ca3af; margin-left: 2px;"></i></span> 
+                </div>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a8.96 8.96 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.47a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.47a2 2 0 0 0-1.34-2.23z"/></svg>
+            </div>
+            
+            <div style="background-color: #f8f9fa; border-radius: 8px; padding: 12px; display: flex; justify-content: space-between; align-items: stretch; margin-top: 10px;">
+                <div style="display: flex; flex-direction: column; gap: 14px; flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="${team1FlagStyle}; width: 28px; height: 28px;"></div>
+                        <span style="font-weight: 800; font-size: 15px; color: #111827; min-width: 40px;">${match.team1Code}</span>
+                        <span style="font-size: 14px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;">${team1Name}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="${team2FlagStyle}; width: 28px; height: 28px;"></div>
+                        <span style="font-weight: 800; font-size: 15px; color: #111827; min-width: 40px;">${match.team2Code}</span>
+                        <span style="font-size: 14px; color: #6b7280; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 110px;">${team2Name}</span>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; padding-left: 16px; border-left: 1px solid #e5e7eb; display: flex; flex-direction: column; justify-content: center; min-width: 80px;">
+                    <div style="font-size: 14px; font-weight: 700; color: #dc2626; margin-bottom: 2px; letter-spacing: 0.5px;">${match.timeLabel}</div>
+                    <div style="font-size: 11px; color: #4b5563; font-weight: 500;">${match.time}</div>
+                </div>
+            </div>
+            
+            <div style="margin-top: 14px; display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; color: #111827;">
+               <div style="display: inline-flex; align-items: center; justify-content: center;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#d4ac0d" stroke-width="1.5"><path d="M12 2l8 5v10l-8 5-8-5V7l8-5z"/><text x="12" y="16.5" text-anchor="middle" fill="#d4ac0d" font-family="'Inter', sans-serif" font-size="11" font-weight="900">M</text></svg>
+               </div> 
+               <span>${match.prize.replace(/\\+$/, '')}<sup style="font-size: 10px; font-weight: 800;">+</sup></span>
+            </div>
+        `;
+        return div;
+    }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Get elements
+            const initialCard = document.getElementById('initial-party-card');
+            const wonCard = document.getElementById('won-match-card');
+
+            // 2. Set timeout for 1 second (1000 milliseconds)
+            setTimeout(() => {
+                // Hide the initial green card
+                initialCard.style.opacity = '0';
+
+                // After a brief moment to let the opacity fade start, trigger the pop in
+                setTimeout(() => {
+                     initialCard.style.display = 'none'; // Remove it from flow
+                     // Trigger the CSS animation class on the won card
+                     wonCard.classList.add('trigger-pop');
+                }, 300);
+
+            }, 1000);
+        });
+    </script>
+
+</body>
+</html>

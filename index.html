@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Come App Clone</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lobster&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script src="js/firebase-init.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --card-bg: #111825; /* Darker blue-gray from image */
+            --text-white: #ffffff;
+            --text-gray: #6b7280;
+            --accent-green: #2ecc71;
+            --accent-blue: #3498db;
+            --nav-bg: #1a1f2e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            padding-bottom: 80px; /* Space for bottom nav */
+        }
+
+        /* --- HEADER --- */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background-color: var(--bg-dark);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-family: 'Lobster', cursive;
+            font-size: 28px;
+            color: white;
+            letter-spacing: 1px;
+        }
+
+        .balance-container {
+            display: flex;
+            align-items: center;
+            background-color: #1c2230;
+            padding: 6px 12px;
+            border-radius: 20px;
+            gap: 8px;
+            border: 1px solid #2a3245;
+        }
+
+        .flag-icon {
+            width: 20px;
+            height: 14px;
+            background: linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%);
+            border-radius: 2px;
+        }
+
+        .balance-text {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .wallet-btn {
+            background: linear-gradient(135deg, #ff8c42, #ff5e00);
+            padding: 8px 12px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(255, 94, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .icon-btn {
+            position: relative;
+            font-size: 20px;
+            color: #8b9bb4;
+        }
+
+        .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ff4757;
+            color: white;
+            font-size: 10px;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--bg-dark);
+        }
+
+        .profile-icon {
+            color: #3498db;
+            font-size: 24px;
+        }
+
+        /* --- TOP CATEGORIES --- */
+        .categories {
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            padding-right: 155px; /* Space for the absolute jackpot banner */
+            overflow-x: auto;
+            gap: 28px;
+            position: relative;
+            scrollbar-width: none;
+        }
+        .categories::-webkit-scrollbar {
+            display: none;
+        }
+
+        .cat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #6b7280;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .cat-item.active { color: #ffffff; }
+        .cat-icon { display: flex; align-items: center; justify-content: center; height: 32px; }
+        .cat-icon img { width: 32px; height: auto; max-height: 32px; filter: grayscale(100%) brightness(0.9); opacity: 0.8; object-fit: contain; transition: all 0.3s; }
+        .cat-item.active .cat-icon img { filter: grayscale(0%) brightness(1.1); opacity: 1; }
+
+        .jackpot-banner-small {
+            width: 150px;
+            height: 55px;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            border-radius: 0;
+            background-size: cover;
+            background-position: left center;
+            background-repeat: no-repeat;
+            z-index: 10;
+        }
+
+        /* --- HERO BANNER --- */
+        .hero-section {
+            padding: 16px;
+        }
+
+        .hero-card {
+            background: linear-gradient(135deg, #3a0000, #1a0b2e);
+            border-radius: 16px;
+            padding: 0;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #4a192c;
+            min-height: 160px;
+        }
+
+        .hero-content {
+            padding: 16px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+
+        .prize-pool {
+            color: #f1c40f;
+            font-weight: 800;
+            font-size: 18px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            margin-bottom: 4px;
+        }
+
+        .match-info-top {
+            font-size: 10px;
+            color: white;
+            opacity: 0.9;
+            margin-bottom: 12px;
+        }
+
+        .teams-vs {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+
+        .team {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .flag-large {
+            width: 30px;
+            height: 20px;
+            background-color: #eee;
+            margin-bottom: 5px;
+            border-radius: 3px;
+        }
+
+        .vs-badge {
+            background: linear-gradient(to bottom, #f39c12, #d35400);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-style: italic;
+            font-size: 12px;
+            border: 2px solid white;
+            box-shadow: 0 0 10px rgba(243, 156, 18, 0.6);
+        }
+
+        .match-time {
+            margin-top: 12px;
+            font-size: 11px;
+            color: #f1c40f;
+            font-weight: 600;
+            background: rgba(0,0,0,0.6);
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        /* --- SECTION TITLES --- */
+        .section-header {
+            padding: 0 16px;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            font-size: 18px; /* Bigger like image */
+            font-weight: 700;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .view-all {
+            font-size: 13px;
+            color: #3498db; /* Blue color */
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .sports-title {
+            color: white;
+        }
+
+        /* --- RECENTLY PLAYED --- */
+        .recent-card {
+            margin: 0 16px;
+            width: 140px;
+            height: 175px;
+            background: #090a10;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .recent-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            width: 100px;
+            height: 100px;
+            background: #0044ff;
+            filter: blur(45px);
+            opacity: 0.45;
+            z-index: 1;
+        }
+
+        .recent-card::after {
+            content: '';
+            position: absolute;
+            bottom: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            background: #ff0000;
+            filter: blur(45px);
+            opacity: 0.35;
+            z-index: 1;
+        }
+
+        .recent-text {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+            z-index: 2;
+            text-transform: uppercase;
+            font-family: 'Inter', sans-serif;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- MATCH LIST STYLES (UPDATED TO MATCH IMAGE) --- */
+        .match-card {
+            background: #141c2c;
+            border-radius: 12px;
+            margin: 0 16px 16px 16px;
+            padding: 14px 16px;
+            border: 1px solid rgba(255,255,255,0.03);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .match-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .match-league {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+
+        .match-league i {
+            color: #141c2c;
+            background: white;
+            font-size: 8px;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shirt-icon {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .match-content-grid {
+            background: #0d131f; 
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .teams-column {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .team-row-new {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .flag-circle {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background-color: #333;
+            background-size: cover;
+            background-position: center;
+            border: none;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .team-code {
+            font-size: 14px;
+            font-weight: 700;
+            color: white;
+            min-width: 35px;
+        }
+
+        .team-name-gray {
+            font-size: 13px;
+            color: #6b7280;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100px;
+        }
+
+        .vertical-divider {
+            width: 1px;
+            height: 35px;
+            background-color: #1f2937;
+            margin: 0 12px;
+        }
+
+        .time-column {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 70px;
+        }
+
+        .countdown-timer, .date-text {
+            font-size: 12px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 4px;
+            text-align: center;
+        }
+        
+        /* The image has red text for active countdowns but white for normal ones like Tomorrow. We can keep general countdown orange/red just in case. */
+        .countdown-timer {
+            color: #ff6b4a;
+        }
+
+        .time-text {
+            font-size: 11px;
+            color: #6b7280;
+            text-align: center;
+        }
+
+        .prize-section {
+            margin-top: 12px;
+            padding-top: 0;
+            border-top: none;
+        }
+
+        .prize-amount {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .prize-amount span {
+            font-size: 14px;
+            font-weight: 700;
+            color: #facc15;
+        }
+
+        /* --- BOTTOM NAV (UPDATED) --- */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: #1a1f2e;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0 20px; /* More padding bottom for iPhone home bar */
+            z-index: 1000;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            color: #64748b;
+            font-size: 10px;
+            cursor: pointer;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+            color: #64748b;
+        }
+
+        .nav-item span {
+            font-weight: 500;
+        }
+
+        /* Specific flag gradients to simulate image */
+        .flag-sl { background: linear-gradient(135deg, #800000 50%, #f1c40f 50%); }
+        .flag-oma { background: linear-gradient(to bottom, white 33%, red 33%, red 66%, green 66%); }
+        .flag-nep { background: linear-gradient(135deg, #003893 20%, #dc143c 20%); }
+        .flag-ita { background: linear-gradient(to right, green 33%, white 33%, white 66%, red 66%); }
+        .flag-ind { background: linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%); }
+        .flag-nam { background: linear-gradient(135deg, #003580 25%, #c8102e 25%, #c8102e 50%, #138808 50%, #138808 75%, #ffd700 75%); }
+        .flag-aus { background: radial-gradient(circle at 30% 30%, #012169 40%, #012169 60%); }
+        .flag-zim { background: linear-gradient(to bottom, #138808 20%, #ffd700 20%, #ffd700 40%, #d40000 40%, #d40000 60%, #000000 60%); }
+
+        /* --- COLORED INITIAL --- */
+        .colored-initial, .green-initial { color: #2ecc71; }
+        .blue-initial { color: #3498db; }
+
+        .m-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            background: linear-gradient(135deg, #f1c40f, #d4ac0d);
+            color: #000;
+            font-size: 11px;
+            font-weight: 800;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+        }
+
+        /* --- CAROUSEL --- */
+        .carousel-section {
+            padding: 0 16px 4px;
+        }
+
+        .carousel-wrapper {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #1a1040 0%, #0d2060 50%, #001a40 100%);
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            min-width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 5px;
+            margin-top: 10px;
+            padding-bottom: 4px;
+        }
+
+        .carousel-dot {
+            height: 6px;
+            width: 6px;
+            border-radius: 3px;
+            background: rgba(255,255,255,0.25);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .carousel-dot.active {
+            background: rgba(255,255,255,0.9);
+            width: 18px;
+        }
+
+        /* --- MOBILE STATUS BAR --- */
+        .status-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 16px;
+            background-color: var(--bg-dark);
+            font-size: 12px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .status-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar-time {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .status-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .status-bar-right i {
+            font-size: 13px;
+            color: #ffffff;
+        }
+
+        .battery-container {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .battery-icon {
+            width: 22px;
+            height: 11px;
+            border: 1.5px solid #ffffff;
+            border-radius: 2px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            padding: 1px;
+        }
+
+        .battery-icon::after {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 5px;
+            background: #ffffff;
+            border-radius: 0 1px 1px 0;
+        }
+
+        .battery-fill {
+            height: 100%;
+            width: 80%;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+
+        .battery-pct {
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .signal-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 1px;
+            height: 12px;
+        }
+
+        .signal-bars .bar {
+            width: 3px;
+            background: #ffffff;
+            border-radius: 1px;
+        }
+
+        .signal-bars .bar:nth-child(1) { height: 3px; }
+        .signal-bars .bar:nth-child(2) { height: 5px; }
+        .signal-bars .bar:nth-child(3) { height: 8px; }
+        .signal-bars .bar:nth-child(4) { height: 11px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="status-bar">
+        <div class="status-bar-left">
+            <span class="status-bar-time" id="status-time">10:55</span>
+            <i class="fas fa-gear" style="font-size: 11px; color: #aaa;"></i>
+        </div>
+        <div class="status-bar-right">
+            <i class="fas fa-wifi"></i>
+            <div class="signal-bars">
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+                <div class="bar"></div>
+            </div>
+            <div class="battery-container">
+                <div class="battery-icon"><div class="battery-fill"></div></div>
+                <span class="battery-pct">82</span>
+            </div>
+        </div>
+    </div>
+
+    <header>
+        <a href="admin.html" class="logo" style="text-decoration:none;color:white;">Come</a>
+        <div class="balance-container">
+            <div class="flag-icon"></div>
+            <span class="balance-text" data-field="balance">3918611</span>
+            <i class="fas fa-chevron-down" style="font-size: 10px; color: #888;"></i>
+        </div>
+        <div class="header-actions">
+            <div class="wallet-btn">
+                <i class="fas fa-wallet" style="color: white;"></i>
+            </div>
+            <div class="icon-btn">
+                <i class="fas fa-gift"></i>
+                <div class="badge">2</div>
+            </div>
+            <div class="icon-btn">
+                <i class="fas fa-user-circle profile-icon"></i>
+                <div class="badge">45</div>
+            </div>
+        </div>
+    </header>
+
+    <nav class="categories">
+        <a href="index.html" style="text-decoration: none;">
+            <div class="cat-item active">
+                <div class="cat-icon"><img id="cat-explore-img" src="assets/icons/explore.png" alt="Explore"></div>
+                <span>Explore</span>
+            </div>
+        </a>
+        <a href="sports.html" style="text-decoration: none;">
+            <div class="cat-item">
+                <div class="cat-icon"><img id="cat-sports-img" src="assets/icons/sports.png" alt="Sports"></div>
+                <span>Sports</span>
+            </div>
+        </a>
+        <div class="cat-item">
+            <div class="cat-icon"><img id="cat-casino-img" src="assets/icons/casino.png" alt="Casino"></div>
+            <span>Casino</span>
+        </div>
+        <div class="cat-item">
+            <div class="cat-icon"><img id="cat-rummy-img" src="assets/icons/rummy.png" alt="Rummy"></div>
+            <span>Rummy</span>
+        </div>
+        <div class="jackpot-banner-small" id="jackpot-banner" style="background-image: url('assets/icons/jackpot-banner.png');">
+        </div>
+    </nav>
+
+    <section class="carousel-section" id="carousel-section">
+        <div class="carousel-wrapper">
+            <div class="carousel-track" id="carousel-track"></div>
+        </div>
+        <div class="carousel-dots" id="carousel-dots"></div>
+    </section>
+
+    <div class="section-header">
+        <div class="sports-title"><span class="colored-initial green-initial">R</span>ecently Played</div>
+    </div>
+
+    <a href="sports.html" style="text-decoration: none; color: inherit;">
+        <div class="recent-card">
+            <div style="position: relative; z-index: 2; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; width: 66px; height: 66px;">
+                <svg viewBox="0 0 64 64" width="100%" height="100%">
+                    <!-- Outer thin border (left/right handles/shield edges) -->
+                    <path d="M 16 14 C 16 35, 26 46, 32 54 C 38 46, 48 35, 48 14 Z" fill="transparent" stroke="#ffffff" stroke-width="2.5"/>
+                    <!-- Inner solid shield -->
+                    <path d="M 23 15 C 23 32, 28 41, 32 47 C 36 41, 41 32, 41 15 Z" fill="#ffffff"/>
+                    <!-- The C (dark cut out) -->
+                    <text x="32" y="38" fill="#090a10" font-family="'Inter', sans-serif" font-weight="900" font-size="28" text-anchor="middle">C</text>
+                    <!-- Tapered line at very bottom - base -->
+                    <path d="M 26 56 L 38 56 L 40 60 L 24 60 Z" fill="#ffffff"/>
+                </svg>
+            </div>
+            <div class="recent-text">COME SPORTS</div>
+        </div>
+    </a>
+
+    <div class="section-header">
+        <div class="sports-title"><span class="blue-initial">F</span>antasy</div>
+        <a href="sports.html" class="view-all">View All</a>
+    </div>
+
+    <div id="match-cards-container"></div>
+    <nav class="bottom-nav">
+        <div class="nav-item">
+            <i class="fas fa-gem"></i> <span>VIP</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-briefcase"></i> <span>Affiliate</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-trophy"></i> <span>Jackpot</span>
+        </div>
+        <div class="nav-item">
+            <i class="fas fa-gift"></i> <span>Promos</span>
+        </div>
+    </nav>
+
+    <script>
+    // Load data from Firebase, fall back to cached localStorage while loading
+    comeDB.once('value', function(snapshot) {
+        var d = snapshot.val() || {};
+        // Keep localStorage in sync for offline fallback
+        if (d && Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
+
+        var el = document.getElementById('status-time');
+        if (el && d.statusBarTime) el.textContent = d.statusBarTime;
+        document.querySelectorAll('[data-field]').forEach(function(el) {
+            if (d[el.dataset.field] !== undefined && d[el.dataset.field] !== '') {
+                el.textContent = d[el.dataset.field];
+            }
+        });
+        // Build carousel
+        (function() {
+            var images = [];
+            if (d.carouselImages && d.carouselImages.length) {
+                images = d.carouselImages.filter(Boolean);
+            } else if (d.heroBannerImage) {
+                images = [d.heroBannerImage];
+            }
+            var track = document.getElementById('carousel-track');
+            var dotsContainer = document.getElementById('carousel-dots');
+            if (!track) return;
+            if (images.length === 0) {
+                images = [
+                    'https://via.placeholder.com/400x200/1a1040/ffffff?text=Slide+1',
+                    'https://via.placeholder.com/400x200/0d2060/ffffff?text=Slide+2'
+                ];
+            }
+            images.forEach(function(img, i) {
+                var slide = document.createElement('div');
+                slide.className = 'carousel-slide';
+                slide.style.backgroundImage = 'url(' + img + ')';
+                track.appendChild(slide);
+                if (images.length > 1) {
+                    var dot = document.createElement('div');
+                    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                    dot.onclick = (function(idx) { return function() { goToSlide(idx); }; })(i);
+                    dotsContainer.appendChild(dot);
+                }
+            });
+            if (images.length <= 1) return;
+            var current = 0;
+            function goToSlide(idx) {
+                current = idx;
+                track.style.transform = 'translateX(-' + (current * 100) + '%)';
+                document.querySelectorAll('.carousel-dot').forEach(function(dot, i) {
+                    dot.classList.toggle('active', i === current);
+                });
+            }
+            setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
+        })();
+        renderMatches(d);
+    });
+
+    function renderMatches(d) {
+        if (!d) d = JSON.parse(localStorage.getItem('comeData') || '{}');
+        var matches = [];
+        if (d.matchTeam1Code && d.matchTeam2Code) {
+            matches.push({
+                team1Code: d.matchTeam1Code, team2Code: d.matchTeam2Code,
+                team1Name: d.matchTeam1Name, team2Name: d.matchTeam2Name,
+                team1Color: d.matchTeam1Color, team2Color: d.matchTeam2Color,
+                league: d.matchLeague || "ICC Men's T20 World Cup, 2026",
+                timeLabel: d.matchTimeLabel || 'Tomorrow',
+                time: d.matchTimeValue || '11:00 AM',
+                prize: d.matchPrize || '₹10.57M', showCountdown: false
+            });
+        }
+        if (matches.length === 0) matches = d.matchCards || getDefaultMatches();
+        var container = document.getElementById('match-cards-container');
+        if (!container) return;
+        container.innerHTML = '';
+        matches.forEach(function(match) { container.appendChild(createMatchCard(match)); });
+    }
+
+    function createMatchCard(match) {
+        var countryFlags = {
+            'IND': 'linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%)',
+            'AUS': 'radial-gradient(circle at 30% 30%, #012169 40%, #012169 60%)',
+            'PAK': 'linear-gradient(135deg, #006600 30%, #ffffff 30%, #ffffff 70%, #006600 70%)',
+            'ENG': 'linear-gradient(to right, white 100%)',
+            'SA': 'linear-gradient(135deg, #007749 40%, #FFB612 40%, #FFB612 60%, #007749 60%)',
+            'NAM': 'linear-gradient(135deg, #003580 25%, #c8102e 25%, #c8102e 50%, #138808 50%, #138808 75%, #ffd700 75%)',
+            'ZIM': 'linear-gradient(to bottom, #138808 20%, #ffd700 20%, #ffd700 40%, #d40000 40%, #d40000 60%, #000000 60%)',
+            'AFG': 'linear-gradient(to bottom, #000000 33%, #d32011 33%, #d32011 66%, #138808 66%)',
+            'IRE': 'linear-gradient(to right, #169b62 33%, white 33%, white 66%, #ff883e 66%)',
+            'NZ': '#000000', 'SL': 'linear-gradient(135deg, #800000 50%, #f1c40f 50%)',
+            'WI': 'linear-gradient(to bottom, #7B0041 50%, #FFD700 50%)',
+            'BAN': 'linear-gradient(to right, #006a4e 50%, #f42a41 50%)',
+            'OMA': 'linear-gradient(to bottom, white 33%, red 33%, red 66%, green 66%)',
+            'UAE': 'linear-gradient(to right, #00732f 25%, white 25%, white 50%, black 50%, black 75%, #ff0000 75%)',
+            'NEP': 'linear-gradient(135deg, #003893 20%, #dc143c 20%)',
+            'USA': 'repeating-linear-gradient(180deg, #B22234, #B22234 2px, #ffffff 2px, #ffffff 4px)',
+            'SCO': 'linear-gradient(135deg, #0065bd 50%, white 50%)',
+            'NED': 'linear-gradient(to bottom, #c8102e 33%, white 33%, white 66%, #003DA5 66%)',
+            'PNG': 'linear-gradient(135deg, #000000 50%, #ce1126 50%)',
+            'KEN': 'linear-gradient(to bottom, #000000 20%, #006600 20%, #006600 40%, white 40%, white 60%, #006600 60%, #006600 80%, #000000 80%)'
+        };
+        var countryNames = {
+            'IND': 'India', 'AUS': 'Australia', 'PAK': 'Pakistan', 'ENG': 'England',
+            'SA': 'South Africa', 'NZ': 'New Zealand', 'SL': 'Sri Lanka', 'WI': 'West Indies',
+            'BAN': 'Bangladesh', 'AFG': 'Afghanistan', 'IRE': 'Ireland', 'ZIM': 'Zimbabwe',
+            'NAM': 'Namibia', 'OMA': 'Oman', 'UAE': 'UAE', 'NEP': 'Nepal',
+            'USA': 'USA', 'SCO': 'Scotland', 'NED': 'Netherlands', 'PNG': 'Papua New Guinea',
+            'KEN': 'Kenya', 'CAN': 'Canada'
+        };
+        var countryISO = {
+            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
+            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
+            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
+            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
+            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
+        };
+        var team1Name = match.team1Name || countryNames[match.team1Code] || match.team1Code;
+        var team2Name = match.team2Name || countryNames[match.team2Code] || match.team2Code;
+        var iso1 = countryISO[match.team1Code];
+        var iso2 = countryISO[match.team2Code];
+        var team1FlagStyle = iso1 ?
+            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso1 + '.svg);background-size:cover;background-position:center;' :
+            'background:' + (match.team1Color || countryFlags[match.team1Code] || '#555') + ';';
+        var team2FlagStyle = iso2 ?
+            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso2 + '.svg);background-size:cover;background-position:center;' :
+            'background:' + (match.team2Color || countryFlags[match.team2Code] || '#555') + ';';
+        var div = document.createElement('div');
+        div.className = 'match-card';
+        div.innerHTML = `
+            <div class="match-header-row">
+                <div class="match-league">
+                    <i class="fas fa-baseball-ball"></i>
+                    <span>${match.league} ></span>
+                </div>
+                <i class="fas fa-tshirt shirt-icon"></i>
+            </div>
+            <div class="match-content-grid">
+                <div class="teams-column">
+                    <div class="team-row-new">
+                        <div class="flag-circle" style="${team1FlagStyle}"></div>
+                        <span class="team-code">${match.team1Code}</span>
+                        <span class="team-name-gray">${team1Name}</span>
+                    </div>
+                    <div class="team-row-new">
+                        <div class="flag-circle" style="${team2FlagStyle}"></div>
+                        <span class="team-code">${match.team2Code}</span>
+                        <span class="team-name-gray">${team2Name}</span>
+                    </div>
+                </div>
+                <div class="vertical-divider"></div>
+                <div class="time-column">
+                    ${match.showCountdown ?
+                        '<span class="countdown-timer">' + match.timeLabel + '</span>' :
+                        '<span class="date-text">' + match.timeLabel + '</span>'
+                    }
+                    <span class="time-text">${match.time}</span>
+                </div>
+            </div>
+            <div class="prize-section">
+                <div class="prize-amount">
+                    <div class="m-icon">M</div>
+                    <span>${match.prize}</span>
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
+    function getDefaultMatches() {
+        return [
+            {
+                team1Code: 'IND', team2Code: 'NAM',
+                league: 'ICC Men\'s T20 World Cup, 2026',
+                timeLabel: '1h 02m', time: '7:00 PM',
+                prize: '₹42.31M', showCountdown: true
+            },
+            {
+                team1Code: 'AUS', team2Code: 'ZIM',
+                league: 'ICC Men\'s T20 World Cup, 2026',
+                timeLabel: 'Tomorrow', time: '11:00 AM',
+                prize: '₹42.31M', showCountdown: false
+            }
+        ];
+    }
+    </script>
+
+</body>
+</html>
