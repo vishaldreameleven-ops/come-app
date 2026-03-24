@@ -235,46 +235,9 @@
         .b-nav-item i { font-size: 20px; }
         .b-nav-item.active { color: #d32f2f; }
 
-        /* --- MOBILE STATUS BAR --- */
-        .status-bar { display: flex; align-items: center; justify-content: space-between; padding: 6px 16px; background-color: var(--bg-dark); font-size: 12px; font-weight: 600; color: #ffffff; }
-        .status-bar-left { display: flex; align-items: center; gap: 6px; }
-        .status-bar-time { font-size: 13px; font-weight: 700; }
-        .status-bar-right { display: flex; align-items: center; gap: 6px; }
-        .status-bar-right i { font-size: 13px; color: #ffffff; }
-        .battery-container { display: flex; align-items: center; gap: 3px; }
-        .battery-icon { width: 22px; height: 11px; border: 1.5px solid #ffffff; border-radius: 2px; position: relative; display: flex; align-items: center; padding: 1px; }
-        .battery-icon::after { content: ''; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); width: 2px; height: 5px; background: #ffffff; border-radius: 0 1px 1px 0; }
-        .battery-fill { height: 100%; width: 80%; background: #ffffff; border-radius: 1px; }
-        .battery-pct { font-size: 11px; font-weight: 600; }
-        .signal-bars { display: flex; align-items: flex-end; gap: 1px; height: 12px; }
-        .signal-bars .bar { width: 3px; background: #ffffff; border-radius: 1px; }
-        .signal-bars .bar:nth-child(1) { height: 3px; }
-        .signal-bars .bar:nth-child(2) { height: 5px; }
-        .signal-bars .bar:nth-child(3) { height: 8px; }
-        .signal-bars .bar:nth-child(4) { height: 11px; }
     </style>
 </head>
 <body>
-
-    <div class="status-bar">
-        <div class="status-bar-left">
-            <span class="status-bar-time" id="status-time">10:55</span>
-            <i class="fas fa-gear" style="font-size: 11px; color: #aaa;"></i>
-        </div>
-        <div class="status-bar-right">
-            <i class="fas fa-wifi"></i>
-            <div class="signal-bars">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <div class="battery-container">
-                <div class="battery-icon"><div class="battery-fill"></div></div>
-                <span class="battery-pct">82</span>
-            </div>
-        </div>
-    </div>
 
     <header class="details-header">
         <a href="sports.html" class="back-btn"><i class="fas fa-chevron-left"></i></a>

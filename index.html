@@ -583,122 +583,54 @@
             width: 18px;
         }
 
-        /* --- MOBILE STATUS BAR --- */
-        .status-bar {
-            display: flex;
+
+        /* --- NAVIGATION LOADING OVERLAY --- */
+        #nav-loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 99;
+            background-image: url('assets/ipl-loading.png');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             align-items: center;
-            justify-content: space-between;
-            padding: 6px 16px;
-            background-color: var(--bg-dark);
-            font-size: 12px;
-            font-weight: 600;
-            color: #ffffff;
+            justify-content: center;
         }
-
-        .status-bar-left {
+        #nav-loading-overlay.active {
             display: flex;
-            align-items: center;
-            gap: 6px;
         }
-
-        .status-bar-time {
-            font-size: 13px;
-            font-weight: 700;
+        .rainbow-ring {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #ff0000 0deg,
+                #ff8c00 45deg,
+                #ffe400 90deg,
+                #00e000 135deg,
+                #00cfff 180deg,
+                #0055ff 225deg,
+                #cc00ff 270deg,
+                #ff0000 360deg
+            );
+            -webkit-mask: radial-gradient(circle, transparent 44%, black 45%);
+            mask: radial-gradient(circle, transparent 44%, black 45%);
+            animation: rainbow-spin 0.9s linear infinite;
         }
-
-        .status-bar-right {
-            display: flex;
-            align-items: center;
-            gap: 6px;
+        @keyframes rainbow-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
         }
-
-        .status-bar-right i {
-            font-size: 13px;
-            color: #ffffff;
-        }
-
-        .battery-container {
-            display: flex;
-            align-items: center;
-            gap: 3px;
-        }
-
-        .battery-icon {
-            width: 22px;
-            height: 11px;
-            border: 1.5px solid #ffffff;
-            border-radius: 2px;
-            position: relative;
-            display: flex;
-            align-items: center;
-            padding: 1px;
-        }
-
-        .battery-icon::after {
-            content: '';
-            position: absolute;
-            right: -4px;
-            top: 50%;
-            transform: translateY(-50%);
-            width: 2px;
-            height: 5px;
-            background: #ffffff;
-            border-radius: 0 1px 1px 0;
-        }
-
-        .battery-fill {
-            height: 100%;
-            width: 80%;
-            background: #ffffff;
-            border-radius: 1px;
-        }
-
-        .battery-pct {
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .signal-bars {
-            display: flex;
-            align-items: flex-end;
-            gap: 1px;
-            height: 12px;
-        }
-
-        .signal-bars .bar {
-            width: 3px;
-            background: #ffffff;
-            border-radius: 1px;
-        }
-
-        .signal-bars .bar:nth-child(1) { height: 3px; }
-        .signal-bars .bar:nth-child(2) { height: 5px; }
-        .signal-bars .bar:nth-child(3) { height: 8px; }
-        .signal-bars .bar:nth-child(4) { height: 11px; }
 
     </style>
 </head>
 <body>
 
-    <div class="status-bar">
-        <div class="status-bar-left">
-            <span class="status-bar-time" id="status-time">10:55</span>
-            <i class="fas fa-gear" style="font-size: 11px; color: #aaa;"></i>
-        </div>
-        <div class="status-bar-right">
-            <i class="fas fa-wifi"></i>
-            <div class="signal-bars">
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-                <div class="bar"></div>
-            </div>
-            <div class="battery-container">
-                <div class="battery-icon"><div class="battery-fill"></div></div>
-                <span class="battery-pct">82</span>
-            </div>
-        </div>
-    </div>
 
     <header>
         <a href="admin.html" style="text-decoration:none;">
@@ -842,6 +774,8 @@
             setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
         })();
         renderMatches(d);
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
     });
 
     function renderMatches(d) {
@@ -971,6 +905,33 @@
             }
         ];
     }
+    </script>
+
+    <!-- Navigation Loading Overlay -->
+    <div id="nav-loading-overlay" class="active">
+        <div class="rainbow-ring"></div>
+    </div>
+
+    <script>
+    // Fallback: hide overlay after 5s if Firebase never responds
+    setTimeout(function() {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
+    }, 5000);
+
+    (function() {
+        var overlay = document.getElementById('nav-loading-overlay');
+        document.querySelectorAll('a[href]').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('javascript') && href !== 'admin.html') {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (overlay) overlay.classList.add('active');
+                    setTimeout(function() { window.location.href = href; }, 80);
+                });
+            }
+        });
+    })();
     </script>
 
 </body>

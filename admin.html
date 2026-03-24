@@ -217,28 +217,58 @@
                 </div>
             </div>
 
-            <!-- SPORTS WON MATCH -->
+            <!-- SPORTS MY MATCHES -->
             <div class="section">
-                <div class="section-header" onclick="toggleSection(this)">Sports - Won Match <span class="arrow">&#9660;</span></div>
+                <div class="section-header" onclick="toggleSection(this)">Sports - My Matches <span class="arrow">&#9660;</span></div>
                 <div class="section-body">
+                    <div class="field">
+                        <label>Match State</label>
+                        <select name="myMatchState" style="background: #0f111a; border: 1px solid #2a3245; border-radius: 8px; padding: 10px 12px; color: #fff; font-size: 14px; width: 100%; outline: none;">
+                            <option value="start">Match Start (Timer)</option>
+                            <option value="won">Match Won (Amount)</option>
+                        </select>
+                    </div>
+                    <div class="divider"></div>
                     <span class="group-label">Team 1</span>
                     <div class="field-row">
-                        <div class="field"><label>Code</label><input type="text" name="wonTeam1Code" value="PAK" oninput="autoFillCountry('wonTeam1Code')"></div>
-                        <div class="field"><label>Full Name</label><input type="text" name="wonTeam1Name" value="Pakistan"></div>
+                        <div class="field"><label>Code</label><input type="text" name="myTeam1Code" value="KSO" oninput="autoFillIPL('myTeam1Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="myTeam1Name" value="Konark Suryas Odisha"></div>
                     </div>
-                    <div class="field"><label>Flag Color</label><input type="color" name="wonTeam1Color" value="#006600"></div>
+                    <div class="field">
+                        <label>Team 1 Logo</label>
+                        <input type="text" name="myTeam1Logo" placeholder="Paste image URL..." oninput="pendingImages['myTeam1Logo']=this.value; if(this.value){document.getElementById('myTeam1LogoPreviewImg').src=this.value;document.getElementById('myTeam1LogoPreview').style.display='block';document.getElementById('myTeam1LogoRemove').style.display='inline';}else{document.getElementById('myTeam1LogoPreview').style.display='none';document.getElementById('myTeam1LogoRemove').style.display='none';}">
+                        <div style="margin: 6px 0; color: #4b5563; font-size: 11px; text-align: center;">— or upload —</div>
+                        <div class="drop-zone" id="myTeam1LogoDropZone"><input type="file" id="myTeam1LogoFile" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="myTeam1LogoPreview"><img id="myTeam1LogoPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="myTeam1LogoRemove" onclick="removeImage('myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoRemove', 'myTeam1LogoFile'); document.querySelector('input[name=myTeam1Logo]').value='';">Remove</span>
+                    </div>
                     <span class="group-label">Team 2</span>
                     <div class="field-row">
-                        <div class="field"><label>Code</label><input type="text" name="wonTeam2Code" value="USA" oninput="autoFillCountry('wonTeam2Code')"></div>
-                        <div class="field"><label>Full Name</label><input type="text" name="wonTeam2Name" value="USA"></div>
+                        <div class="field"><label>Code</label><input type="text" name="myTeam2Code" value="SSS" oninput="autoFillIPL('myTeam2Code')"></div>
+                        <div class="field"><label>Full Name</label><input type="text" name="myTeam2Name" value="Southern Super Stars"></div>
                     </div>
-                    <div class="field"><label>Flag Color</label><input type="color" name="wonTeam2Color" value="#b22234"></div>
+                    <div class="field">
+                        <label>Team 2 Logo</label>
+                        <input type="text" name="myTeam2Logo" placeholder="Paste image URL..." oninput="pendingImages['myTeam2Logo']=this.value; if(this.value){document.getElementById('myTeam2LogoPreviewImg').src=this.value;document.getElementById('myTeam2LogoPreview').style.display='block';document.getElementById('myTeam2LogoRemove').style.display='inline';}else{document.getElementById('myTeam2LogoPreview').style.display='none';document.getElementById('myTeam2LogoRemove').style.display='none';}">
+                        <div style="margin: 6px 0; color: #4b5563; font-size: 11px; text-align: center;">— or upload —</div>
+                        <div class="drop-zone" id="myTeam2LogoDropZone"><input type="file" id="myTeam2LogoFile" accept="image/*"><div class="drop-icon">&#8683;</div><p class="drop-text">Drag & drop or <span>click to browse</span></p></div>
+                        <div class="img-preview" id="myTeam2LogoPreview"><img id="myTeam2LogoPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="myTeam2LogoRemove" onclick="removeImage('myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoRemove', 'myTeam2LogoFile'); document.querySelector('input[name=myTeam2Logo]').value='';">Remove</span>
+                    </div>
                     <div class="divider"></div>
+                    <span class="group-label">If Match Start:</span>
                     <div class="field-row">
-                        <div class="field"><label>Date</label><input type="text" name="wonDate" value="10 Feb"></div>
-                        <div class="field"><label>Status</label><input type="text" name="wonStatus" value="Completed"></div>
+                        <div class="field"><label>Time</label><input type="text" name="myMatchTime" value="09:30 AM"></div>
+                        <div class="field"><label>Live Timer (Red)</label><input type="text" name="myMatchTimer" value="6m : 4s"></div>
                     </div>
-                    <div class="field"><label>Won Amount Text</label><input type="text" name="wonAmount" value="Won ₹3918609"></div>
+                    <div class="field"><label>Subtext</label><input type="text" name="myMatchSubtext" value="1 Team · 1 Contest"></div>
+                    <div class="divider"></div>
+                    <span class="group-label">If Match Won:</span>
+                    <div class="field-row">
+                        <div class="field"><label>Date (e.g. 10 Feb)</label><input type="text" name="myMatchDate" value="10 Feb"></div>
+                        <div class="field"><label>Status (e.g. Completed)</label><input type="text" name="myMatchStatus" value="Completed"></div>
+                    </div>
+                    <div class="field"><label>Won Amount Text (Green)</label><input type="text" name="myMatchWonAmount" value="Won ₹3918609"></div>
                 </div>
             </div>
 
@@ -483,6 +513,53 @@
             'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
         };
 
+        // IPL team data — logos from official IPL scores CDN
+        var iplTeams = {
+            'CSK':  { name: 'Chennai Super Kings',         logo: 'https://scores.iplt20.com/ipl/teamlogos/CSK.png' },
+            'MI':   { name: 'Mumbai Indians',              logo: 'https://scores.iplt20.com/ipl/teamlogos/MI.png' },
+            'RCB':  { name: 'Royal Challengers Bengaluru', logo: 'https://scores.iplt20.com/ipl/teamlogos/RCB.png' },
+            'KKR':  { name: 'Kolkata Knight Riders',       logo: 'https://scores.iplt20.com/ipl/teamlogos/KKR.png' },
+            'SRH':  { name: 'Sunrisers Hyderabad',         logo: 'https://scores.iplt20.com/ipl/teamlogos/SRH.png' },
+            'RR':   { name: 'Rajasthan Royals',            logo: 'https://scores.iplt20.com/ipl/teamlogos/RR.png' },
+            'PBKS': { name: 'Punjab Kings',                logo: 'https://scores.iplt20.com/ipl/teamlogos/PBKS.png' },
+            'DC':   { name: 'Delhi Capitals',              logo: 'https://scores.iplt20.com/ipl/teamlogos/DC.png' },
+            'GT':   { name: 'Gujarat Titans',              logo: 'https://scores.iplt20.com/ipl/teamlogos/GT.png' },
+            'LSG':  { name: 'Lucknow Super Giants',        logo: 'https://scores.iplt20.com/ipl/teamlogos/LSG.png' },
+        };
+
+        // Auto-fill team name + logo when typing an IPL team code
+        function autoFillIPL(codeInputName) {
+            var codeInput = document.querySelector('input[name="' + codeInputName + '"]');
+            if (!codeInput) return;
+            var code = codeInput.value.toUpperCase().trim();
+            codeInput.value = code;
+
+            // Derive suffix: 'myTeam1Code' → '1', 'myTeam2Code' → '2'
+            var suffix = codeInputName.replace('myTeam', '').replace('Code', '');
+            var nameInput  = document.querySelector('input[name="myTeam' + suffix + 'Name"]');
+            var logoInput  = document.querySelector('input[name="myTeam' + suffix + 'Logo"]');
+            var previewWrap = document.getElementById('myTeam' + suffix + 'LogoPreview');
+            var previewImg  = document.getElementById('myTeam' + suffix + 'LogoPreviewImg');
+            var removeBtn   = document.getElementById('myTeam' + suffix + 'LogoRemove');
+            var logoKey = 'myTeam' + suffix + 'Logo';
+
+            var team = iplTeams[code];
+            if (team) {
+                if (nameInput)  nameInput.value  = team.name;
+                if (logoInput)  logoInput.value  = team.logo;
+                pendingImages[logoKey] = team.logo;
+                if (previewImg)  previewImg.src              = team.logo;
+                if (previewWrap) previewWrap.style.display   = 'block';
+                if (removeBtn)   removeBtn.style.display     = 'inline';
+            } else if (!code) {
+                if (nameInput)  nameInput.value  = '';
+                if (logoInput)  logoInput.value  = '';
+                delete pendingImages[logoKey];
+                if (previewWrap) previewWrap.style.display = 'none';
+                if (removeBtn)   removeBtn.style.display   = 'none';
+            }
+        }
+
         // Auto-fill Full Name and Flag Color when typing a country code
         function autoFillCountry(codeInputName) {
             var codeInput = document.querySelector('input[name="' + codeInputName + '"]');
@@ -633,6 +710,8 @@
         setupFilePicker('catRummyFile', 'catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove');
         setupFilePicker('catJackpotFile', 'catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove');
         setupFilePicker('sportsPromoBannerFile', 'sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove');
+        setupFilePicker('myTeam1LogoFile', 'myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove');
+        setupFilePicker('myTeam2LogoFile', 'myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove');
 
         function showPreview(previewId, imgId, removeId, src) {
             var wrap = document.getElementById(previewId);
@@ -682,7 +761,7 @@
                 var data = snapshot.val() || {};
                 _adminData = data;
                 var form = document.getElementById('adminForm');
-                var inputs = form.querySelectorAll('input[name]');
+                var inputs = form.querySelectorAll('input[name], select[name]');
                 inputs.forEach(function(input) {
                     if (data[input.name] !== undefined) {
                         input.value = data[input.name];
@@ -710,12 +789,19 @@
                     ['catCasinoImg', 'catCasinoPreview', 'catCasinoPreviewImg', 'catCasinoRemove'],
                     ['catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove'],
                     ['catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove'],
-                    ['sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove']
+                    ['sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove'],
+                    ['myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove'],
+                    ['myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove']
                 ];
                 imgFields.forEach(function(f) {
                     if (data[f[0]]) {
                         pendingImages[f[0]] = data[f[0]];
                         showPreview(f[1], f[2], f[3], data[f[0]]);
+                        // Populate URL text inputs (only for actual URLs, not base64)
+                        var urlInput = document.querySelector('input[name="' + f[0] + '"]');
+                        if (urlInput && !data[f[0]].startsWith('data:')) {
+                            urlInput.value = data[f[0]];
+                        }
                     }
                 });
 
@@ -743,7 +829,7 @@
         function saveData() {
             var data = {};
             var form = document.getElementById('adminForm');
-            var inputs = form.querySelectorAll('input[name]');
+            var inputs = form.querySelectorAll('input[name], select[name]');
             inputs.forEach(function(input) {
                 data[input.name] = input.value;
             });
@@ -945,6 +1031,9 @@
         ['matchTeam1Code','matchTeam2Code','wonTeam1Code','wonTeam2Code',
          'sp1Team1Code','sp1Team2Code','sp2Team1Code','sp2Team2Code'].forEach(function(name) {
             autoFillCountry(name);
+        });
+        ['myTeam1Code','myTeam2Code'].forEach(function(name) {
+            autoFillIPL(name);
         });
     </script>
 </body>

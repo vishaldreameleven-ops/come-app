@@ -129,57 +129,52 @@
         .b-nav-item i { font-size: 24px; margin-bottom: 2px; }
         .b-nav-item.active { color: #dc2626; }
 
-        /* --- MOBILE STATUS BAR --- */
-        .status-bar {
-            display: flex;
+
+        /* --- NAVIGATION LOADING OVERLAY --- */
+        #nav-loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 99;
+            background-image: url('assets/ipl-loading.png');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
             align-items: center;
-            justify-content: space-between;
-            padding: 6px 16px;
-            background-color: var(--bg-dark);
-            font-size: 12px;
-            font-weight: 600;
-            color: #ffffff;
+            justify-content: center;
         }
-        .status-bar-left { display: flex; align-items: center; gap: 6px; }
-        .status-bar-time { font-size: 13px; font-weight: 700; }
-        .status-bar-right { display: flex; align-items: center; gap: 6px; }
-        .status-bar-right i { font-size: 13px; color: #ffffff; }
-        .battery-container { display: flex; align-items: center; gap: 3px; }
-        .battery-icon { width: 22px; height: 11px; border: 1.5px solid #ffffff; border-radius: 2px; position: relative; display: flex; align-items: center; padding: 1px; }
-        .battery-icon::after { content: ''; position: absolute; right: -4px; top: 50%; transform: translateY(-50%); width: 2px; height: 5px; background: #ffffff; border-radius: 0 1px 1px 0; }
-        .battery-fill { height: 100%; width: 80%; background: #ffffff; border-radius: 1px; }
-        .battery-pct { font-size: 11px; font-weight: 600; }
-        .signal-bars { display: flex; align-items: flex-end; gap: 1px; height: 12px; }
-        .signal-bars .bar { width: 3px; background: #ffffff; border-radius: 1px; }
-        .signal-bars .bar:nth-child(1) { height: 3px; }
-        .signal-bars .bar:nth-child(2) { height: 5px; }
-        .signal-bars .bar:nth-child(3) { height: 8px; }
-        .signal-bars .bar:nth-child(4) { height: 11px; }
+        #nav-loading-overlay.active { display: flex; }
+        .rainbow-ring {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: conic-gradient(
+                from 0deg,
+                #ff0000 0deg,
+                #ff8c00 45deg,
+                #ffe400 90deg,
+                #00e000 135deg,
+                #00cfff 180deg,
+                #0055ff 225deg,
+                #cc00ff 270deg,
+                #ff0000 360deg
+            );
+            -webkit-mask: radial-gradient(circle, transparent 44%, black 45%);
+            mask: radial-gradient(circle, transparent 44%, black 45%);
+            animation: rainbow-spin 0.9s linear infinite;
+        }
+        @keyframes rainbow-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
 
     <div class="top-section-dark">
-        <div class="status-bar">
-            <div class="status-bar-left">
-                <span class="status-bar-time" id="status-time">10:55</span>
-                <i class="fas fa-gear" style="font-size: 11px; color: #aaa;"></i>
-            </div>
-            <div class="status-bar-right">
-                <i class="fas fa-wifi"></i>
-                <div class="signal-bars">
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                    <div class="bar"></div>
-                </div>
-                <div class="battery-container">
-                    <div class="battery-icon"><div class="battery-fill"></div></div>
-                    <span class="battery-pct">82</span>
-                </div>
-            </div>
-        </div>
-
         <header>
             <img src="assets/icons/come-logo-text.png" alt="Come" style="height:48px;width:auto;">
             <div class="balance-container">
@@ -233,13 +228,8 @@
         <div style="margin: 10px 16px 12px; border-radius: 8px; overflow: hidden; position: relative; height: 100px;">
             <div id="sports-banner-track" style="display:flex; height:100%; transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);"></div>
         </div>
-        <div style="text-align: center; font-size: 12px; color: #d1d5db; margin-bottom: 16px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-            <div style="background: #f1c40f; color: black; font-size: 10px; font-weight: bold; width: 14px; height: 14px; border-radius: 3px; display: flex; align-items: center; justify-content: center; clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%);">%</div>
-            15% off, up to ₹7 per match*
-        </div>
 
         <div id="my-matches-container" style="display: none;"></div>
-         </div>
 
     <div class="white-section">
         <div class="tabs-container">
@@ -365,8 +355,119 @@
         };
 
         // Render dynamic match cards
+        renderMyMatches(d);
         renderSportsMatches(d);
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
     });
+
+    function renderMyMatches(d) {
+        if (!d) d = JSON.parse(localStorage.getItem('comeData') || '{}');
+        var container = document.getElementById('my-matches-container');
+        if (!container) return;
+
+        // If no team code exists, do nothing (keep hidden)
+        if (!d.myTeam1Code || !d.myTeam2Code) {
+            container.style.display = 'none';
+            return;
+        }
+
+        container.style.display = 'block';
+
+        var state = d.myMatchState || 'start'; // 'start' or 'won'
+        
+        var logo1 = d.myTeam1Logo || 'https://placehold.co/24x24/333/fff?text=' + d.myTeam1Code;
+        var logo2 = d.myTeam2Logo || 'https://placehold.co/24x24/333/fff?text=' + d.myTeam2Code;
+
+        var code1 = d.myTeam1Code || 'KSO';
+        var name1 = d.myTeam1Name || 'Konark Suryas Odisha';
+        var code2 = d.myTeam2Code || 'SSS';
+        var name2 = d.myTeam2Name || 'Southern Super Stars';
+        var html = `<div style="padding: 0 16px; margin-bottom: 16px;">`;
+
+        // Section header
+        html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; padding: 0 2px;">
+                <span style="color: #ffffff; font-size: 16px; font-weight: 800; letter-spacing: 0.2px;">My Matches</span>
+                <a href="#" style="color: #ffffff; font-size: 13px; font-weight: 600; text-decoration: none; display: flex; align-items: center; gap: 4px;">View All <i class="fas fa-chevron-right" style="font-size: 11px; opacity: 0.8;"></i></a>
+            </div>
+        `;
+
+        // Card style
+        var cardStyle = "background-color: #212735; border-radius: 12px; padding: 14px 16px; display: flex; align-items: stretch; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid rgba(255,255,255,0.03);";
+        
+        if (state === 'start') {
+            html += `
+                <div style="${cardStyle}">
+                    <div style="display: flex; flex-direction: column; justify-content: center; gap: 10px; flex: 1; min-width: 0;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${logo1}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: transparent; flex-shrink: 0;">
+                            <span style="color: white; font-weight: 800; font-size: 14px; min-width: 32px; flex-shrink: 0; letter-spacing: 0.2px;">${code1}</span>
+                            <span style="color: #8893a4; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name1}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <img src="${logo2}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: transparent; flex-shrink: 0;">
+                            <span style="color: white; font-weight: 800; font-size: 14px; min-width: 32px; flex-shrink: 0; letter-spacing: 0.2px;">${code2}</span>
+                            <span style="color: #8893a4; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name2}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="width: 1px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 15%, rgba(255,255,255,0.08) 85%, transparent); margin: 0 16px; flex-shrink: 0;"></div>
+                    
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; min-width: 86px;">
+                        <span style="color: #8893a4; font-size: 11px; font-weight: 500;">${d.myMatchTime || '09:30 AM'}</span>
+                        <span style="color: #f25e5e; font-size: 15px; font-weight: 800; letter-spacing: 0.5px; line-height: 1.1;">${d.myMatchTimer || '6m : 4s'}</span>
+                        <span style="color: #657183; font-size: 11px; font-weight: 500;">${d.myMatchSubtext || '1 Team · 1 Contest'}</span>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Won State
+            html += `
+                <div style="position: relative; min-height: 96px;">
+                    <div id="initial-party-card" style="position: absolute; inset: 0; background-color: #1e8e3e; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; z-index: 10; transition: opacity 0.3s ease-out;">🎉</div>
+                    <div id="won-match-card-dynamic" style="${cardStyle} opacity: 0; transform: scale(0.85); transition: opacity 0.3s ease, transform 0.3s ease;">
+                        <div style="display: flex; flex-direction: column; justify-content: center; gap: 10px; flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="${logo1}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: transparent; flex-shrink: 0;">
+                                <span style="color: white; font-weight: 800; font-size: 14px; min-width: 32px; flex-shrink: 0; letter-spacing: 0.2px;">${code1}</span>
+                                <span style="color: #8893a4; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name1}</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <img src="${logo2}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: transparent; flex-shrink: 0;">
+                                <span style="color: white; font-weight: 800; font-size: 14px; min-width: 32px; flex-shrink: 0; letter-spacing: 0.2px;">${code2}</span>
+                                <span style="color: #8893a4; font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name2}</span>
+                            </div>
+                        </div>
+                        <div style="width: 1px; background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.08) 15%, rgba(255,255,255,0.08) 85%, transparent); margin: 0 16px; flex-shrink: 0;"></div>
+                        <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;">
+                            <span style="font-size: 11px; color: #8893a4;">${d.myMatchDate || '10 Feb'}</span>
+                            <span style="font-size: 12px; color: #2ecc71; font-weight: 600;">${d.myMatchStatus || 'Completed'}</span>
+                            <span style="font-size: 16px; font-weight: 900; color: #00c853;">${d.myMatchWonAmount || 'Won ₹3918609'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        html += `</div>`;
+        container.innerHTML = html;
+
+        if (state === 'won') {
+            var initialCard = document.getElementById('initial-party-card');
+            var wonCard = document.getElementById('won-match-card-dynamic');
+            if (initialCard && wonCard) {
+                setTimeout(function() {
+                    initialCard.style.opacity = '0';
+                    setTimeout(function() {
+                        initialCard.style.display = 'none';
+                        wonCard.style.opacity = '1';
+                        wonCard.style.transform = 'scale(1)';
+                    }, 300);
+                }, 1000);
+            }
+        }
+    }
 
     function renderSportsMatches(d) {
         if (!d) d = JSON.parse(localStorage.getItem('comeData') || '{}');
@@ -490,26 +591,31 @@
     }
     </script>
 
+    <!-- Navigation Loading Overlay -->
+    <div id="nav-loading-overlay" class="active">
+        <div class="rainbow-ring"></div>
+    </div>
+
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // 1. Get elements
-            const initialCard = document.getElementById('initial-party-card');
-            const wonCard = document.getElementById('won-match-card');
+    // Fallback: hide overlay after 5s if Firebase never responds
+    setTimeout(function() {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
+    }, 5000);
 
-            // 2. Set timeout for 1 second (1000 milliseconds)
-            setTimeout(() => {
-                // Hide the initial green card
-                initialCard.style.opacity = '0';
-
-                // After a brief moment to let the opacity fade start, trigger the pop in
-                setTimeout(() => {
-                     initialCard.style.display = 'none'; // Remove it from flow
-                     // Trigger the CSS animation class on the won card
-                     wonCard.classList.add('trigger-pop');
-                }, 300);
-
-            }, 1000);
+    (function() {
+        var overlay = document.getElementById('nav-loading-overlay');
+        document.querySelectorAll('a[href]').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && !href.startsWith('#') && !href.startsWith('http') && !href.startsWith('javascript') && href !== 'admin.html') {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (overlay) overlay.classList.add('active');
+                    setTimeout(function() { window.location.href = href; }, 80);
+                });
+            }
         });
+    })();
     </script>
 
 </body>
