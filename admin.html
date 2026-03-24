@@ -49,6 +49,21 @@
         .country-name-preview { font-size: 11px; color: #8b9bb4; margin-top: 4px; min-height: 16px; }
         .invalid-country { border-color: #e74c3c !important; }
         .valid-country { border-color: #2ecc71 !important; }
+
+        /* --- RESPONSIVE FIXES --- */
+        @media (max-width: 360px) {
+            .container { padding: 16px 12px 100px; }
+            h1 { font-size: 18px; }
+            input[type="text"] { font-size: 13px; padding: 9px 10px; }
+            .btn { padding: 12px 14px; font-size: 12px; }
+            .section-header { font-size: 11px; padding: 12px 14px; }
+            .section-body { padding: 12px; gap: 10px; }
+            .field-row { gap: 8px; }
+        }
+        @media (max-width: 320px) {
+            .field-row { flex-direction: column; }
+            .btn-container { padding: 10px 12px; gap: 8px; }
+        }
     </style>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>

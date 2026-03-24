@@ -31,7 +31,7 @@
         body {
             background-color: var(--bg-dark);
             color: var(--text-white);
-            padding-bottom: 80px; /* Space for bottom nav */
+            padding-bottom: 65px;
         }
 
         /* --- HEADER --- */
@@ -39,7 +39,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 16px;
+            padding: 9px 14px;
             background-color: var(--bg-dark);
             position: sticky;
             top: 0;
@@ -48,7 +48,7 @@
 
         .logo {
             font-family: 'Lobster', cursive;
-            font-size: 28px;
+            font-size: 22px;
             color: white;
             letter-spacing: 1px;
         }
@@ -57,35 +57,35 @@
             display: flex;
             align-items: center;
             background-color: #1c2230;
-            padding: 6px 12px;
+            padding: 5px 10px;
             border-radius: 20px;
-            gap: 8px;
+            gap: 6px;
             border: 1px solid #2a3245;
         }
 
         .flag-icon {
-            width: 20px;
-            height: 14px;
+            width: 18px;
+            height: 12px;
             background: linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%);
             border-radius: 2px;
         }
 
         .balance-text {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
         }
 
         .header-actions {
             display: flex;
-            gap: 12px;
+            gap: 8px;
             align-items: center;
         }
 
         .wallet-btn {
             background: linear-gradient(135deg, #ff8c42, #ff5e00);
-            padding: 8px 12px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px rgba(255, 94, 0, 0.3);
+            padding: 6px 10px;
+            border-radius: 10px;
+            box-shadow: 0 3px 5px rgba(255, 94, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -93,20 +93,20 @@
 
         .icon-btn {
             position: relative;
-            font-size: 20px;
+            font-size: 18px;
             color: #8b9bb4;
         }
 
         .badge {
             position: absolute;
-            top: -5px;
-            right: -5px;
+            top: -4px;
+            right: -4px;
             background-color: #ff4757;
             color: white;
-            font-size: 10px;
+            font-size: 9px;
             border-radius: 50%;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -115,17 +115,17 @@
 
         .profile-icon {
             color: #3498db;
-            font-size: 24px;
+            font-size: 20px;
         }
 
         /* --- TOP CATEGORIES --- */
         .categories {
             display: flex;
             align-items: center;
-            padding: 12px 16px;
-            padding-right: 155px; /* Space for the absolute jackpot banner */
+            padding: 8px 14px;
+            padding-right: 135px;
             overflow-x: auto;
-            gap: 28px;
+            gap: 20px;
             position: relative;
             scrollbar-width: none;
         }
@@ -137,20 +137,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             color: #6b7280;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 500;
             cursor: pointer;
         }
         .cat-item.active { color: #ffffff; }
-        .cat-icon { display: flex; align-items: center; justify-content: center; height: 32px; }
-        .cat-icon img { width: 32px; height: auto; max-height: 32px; filter: grayscale(100%) brightness(0.9); opacity: 0.8; object-fit: contain; transition: all 0.3s; }
+        .cat-icon { display: flex; align-items: center; justify-content: center; height: 26px; }
+        .cat-icon img { width: 26px; height: auto; max-height: 26px; filter: grayscale(100%) brightness(0.9); opacity: 0.8; object-fit: contain; transition: all 0.3s; }
         .cat-item.active .cat-icon img { filter: none; opacity: 1; }
 
         .jackpot-banner-small {
-            width: 150px;
-            height: 55px;
+            width: 130px;
+            height: 48px;
             position: absolute;
             right: 0;
             top: 50%;
@@ -251,10 +251,10 @@
 
         /* --- SECTION TITLES --- */
         .section-header {
-            padding: 0 16px;
-            margin-top: 20px;
-            margin-bottom: 10px;
-            font-size: 18px; /* Bigger like image */
+            padding: 0 14px;
+            margin-top: 14px;
+            margin-bottom: 8px;
+            font-size: 15px;
             font-weight: 700;
             display: flex;
             justify-content: space-between;
@@ -262,7 +262,7 @@
         }
 
         .view-all {
-            font-size: 13px;
+            font-size: 11px;
             color: #3498db; /* Blue color */
             text-decoration: none;
             font-weight: 500;
@@ -274,11 +274,11 @@
 
         /* --- RECENTLY PLAYED --- */
         .recent-card {
-            margin: 0 16px;
-            width: 140px;
-            height: 175px;
+            margin: 0 12px;
+            width: 100px;
+            height: 120px;
             background: #090a10;
-            border-radius: 12px;
+            border-radius: 10px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -315,7 +315,7 @@
         }
 
         .recent-text {
-            font-size: 14px;
+            font-size: 11px;
             font-weight: 800;
             color: #ffffff;
             z-index: 2;
@@ -327,9 +327,9 @@
         /* --- MATCH LIST STYLES (UPDATED TO MATCH IMAGE) --- */
         .match-card {
             background: #141c2c;
-            border-radius: 12px;
-            margin: 0 16px 16px 16px;
-            padding: 14px 16px;
+            border-radius: 10px;
+            margin: 0 12px 12px 12px;
+            padding: 10px 12px;
             border: 1px solid rgba(255,255,255,0.03);
             box-shadow: 0 4px 10px rgba(0,0,0,0.2);
         }
@@ -338,7 +338,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 8px;
         }
 
         .match-league {
@@ -368,9 +368,9 @@
         }
 
         .match-content-grid {
-            background: #0d131f; 
-            border-radius: 12px;
-            padding: 12px;
+            background: #0d131f;
+            border-radius: 10px;
+            padding: 10px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -379,8 +379,9 @@
         .teams-column {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 9px;
             flex: 1;
+            min-width: 0;
         }
 
         .team-row-new {
@@ -390,8 +391,8 @@
         }
 
         .flag-circle {
-            width: 24px;
-            height: 24px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
             background-color: #333;
             background-size: cover;
@@ -402,27 +403,27 @@
         }
 
         .team-code {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: white;
-            min-width: 35px;
+            min-width: 28px;
         }
 
         .team-name-gray {
-            font-size: 13px;
+            font-size: 12px;
             color: #6b7280;
             font-weight: 500;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 100px;
+            max-width: min(100px, 22vw);
         }
 
         .vertical-divider {
             width: 1px;
-            height: 35px;
+            height: 30px;
             background-color: #1f2937;
-            margin: 0 12px;
+            margin: 0 8px;
         }
 
         .time-column {
@@ -430,11 +431,11 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            min-width: 70px;
+            min-width: 58px;
         }
 
         .countdown-timer, .date-text {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
             color: white;
             margin-bottom: 4px;
@@ -453,7 +454,7 @@
         }
 
         .prize-section {
-            margin-top: 12px;
+            margin-top: 8px;
             padding-top: 0;
             border-top: none;
         }
@@ -465,7 +466,7 @@
         }
 
         .prize-amount span {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
             color: #facc15;
         }
@@ -478,7 +479,7 @@
             background: #1a1f2e;
             display: flex;
             justify-content: space-around;
-            padding: 12px 0 20px; /* More padding bottom for iPhone home bar */
+            padding: 8px 0 14px;
             z-index: 1000;
             border-top: 1px solid rgba(255,255,255,0.05);
         }
@@ -487,16 +488,16 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             color: #64748b;
-            font-size: 10px;
+            font-size: 9px;
             cursor: pointer;
             letter-spacing: 0.5px;
         }
 
         .nav-item i {
-            font-size: 20px;
-            margin-bottom: 2px;
+            font-size: 17px;
+            margin-bottom: 1px;
             color: #64748b;
         }
 
@@ -541,7 +542,7 @@
             border-radius: 16px;
             overflow: hidden;
             width: 100%;
-            height: 200px;
+            height: clamp(140px, 45vw, 200px);
             background: linear-gradient(135deg, #1a1040 0%, #0d2060 50%, #001a40 100%);
         }
 
@@ -627,6 +628,24 @@
             to { transform: rotate(360deg); }
         }
 
+        /* --- RESPONSIVE FIXES --- */
+        @media (max-width: 360px) {
+            header { padding: 8px 10px; }
+            .categories { gap: 16px; padding-right: 120px; }
+            .jackpot-banner-small { width: 115px; height: 42px; }
+            .match-card { margin: 0 8px 10px; padding: 8px 10px; }
+            .match-content-grid { padding: 8px; }
+            .team-code { font-size: 12px; min-width: 26px; }
+            .time-column { min-width: 52px; }
+            .recent-card { width: 88px; height: 106px; }
+            .section-header { font-size: 13px; }
+            .carousel-wrapper { height: 120px; }
+        }
+        @media (max-width: 320px) {
+            .categories { gap: 10px; padding-right: 106px; }
+            .jackpot-banner-small { width: 100px; }
+            .vertical-divider { margin: 0 5px; }
+        }
     </style>
 </head>
 <body>
@@ -634,7 +653,7 @@
 
     <header>
         <a href="admin.html" style="text-decoration:none;">
-            <img src="assets/icons/come-logo-text.png" alt="Come" style="height:48px;width:auto;">
+            <img src="assets/icons/come-logo-text.png" alt="Come" style="height:36px;width:auto;">
         </a>
         <div class="balance-container">
             <div class="flag-icon"></div>
@@ -659,13 +678,13 @@
     <nav class="categories">
         <a href="index.html" style="text-decoration: none;">
             <div class="cat-item active">
-                <div class="cat-icon"><img id="cat-explore-img" src="assets/icons/explore1.png" alt="Explore" style="width:44px;max-height:44px;"></div>
+                <div class="cat-icon"><img id="cat-explore-img" src="assets/icons/explore1.png" alt="Explore" style="width:34px;max-height:34px;"></div>
                 <span>Explore</span>
             </div>
         </a>
         <a href="sports.html" style="text-decoration: none;">
             <div class="cat-item">
-                <div class="cat-icon"><img id="cat-sports-img" src="assets/icons/sports.png" alt="Sports" style="width:48px;max-height:48px;"></div>
+                <div class="cat-icon"><img id="cat-sports-img" src="assets/icons/sports.png" alt="Sports" style="width:38px;max-height:38px;"></div>
                 <span>Sports</span>
             </div>
         </a>
