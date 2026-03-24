@@ -709,7 +709,6 @@
         setupFilePicker('catCasinoFile', 'catCasinoImg', 'catCasinoPreview', 'catCasinoPreviewImg', 'catCasinoRemove');
         setupFilePicker('catRummyFile', 'catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove');
         setupFilePicker('catJackpotFile', 'catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove');
-        setupFilePicker('sportsPromoBannerFile', 'sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove');
         setupFilePicker('myTeam1LogoFile', 'myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove');
         setupFilePicker('myTeam2LogoFile', 'myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove');
 
@@ -789,7 +788,6 @@
                     ['catCasinoImg', 'catCasinoPreview', 'catCasinoPreviewImg', 'catCasinoRemove'],
                     ['catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove'],
                     ['catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove'],
-                    ['sportsPromoBannerImage', 'sportsPromoBannerPreview', 'sportsPromoBannerPreviewImg', 'sportsPromoBannerRemove'],
                     ['myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove'],
                     ['myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove']
                 ];
@@ -859,8 +857,11 @@
             var numMatches = parseInt(document.getElementById('numMatches').value);
             var matchCards = [];
             for (var i = 0; i < numMatches; i++) {
-                var team1 = document.getElementById('match' + i + '_team1').value.toUpperCase();
-                var team2 = document.getElementById('match' + i + '_team2').value.toUpperCase();
+                var t1El = document.getElementById('match' + i + '_team1');
+                var t2El = document.getElementById('match' + i + '_team2');
+                if (!t1El || !t2El) continue;
+                var team1 = t1El.value.toUpperCase();
+                var team2 = t2El.value.toUpperCase();
                 if (team1 && team2) { // Only save if both teams are entered
                     matchCards.push({
                         team1Code: team1,
@@ -1025,7 +1026,8 @@
             }
         }
 
-        loadData(); // updateMatchFields() is called inside loadData's Firebase callback
+        updateMatchFields(); // Render match fields immediately so they exist before Firebase responds
+        loadData(); // loadData will call updateMatchFields() again to populate with saved data
 
         // Trigger auto-fill for all code fields on page load
         ['matchTeam1Code','matchTeam2Code','wonTeam1Code','wonTeam2Code',

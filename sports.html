@@ -274,10 +274,10 @@
     </nav>
 
     <script>
-    comeDB.once('value', function(snapshot) {
-        var d = snapshot.val() || {};
-        if (d && Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
-        // Status bar time from admin
+    function applyData(d) {
+        if (!d || typeof d !== 'object') return;
+        if (Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
+
         var stEl = document.getElementById('status-time');
         if (stEl && d.statusBarTime) stEl.textContent = d.statusBarTime;
 
@@ -293,26 +293,7 @@
             }
         });
 
-        // Set real flag images for won match teams
-        var wonISO = {
-            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
-            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
-            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
-            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
-            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
-        };
-        ['wonTeam1', 'wonTeam2'].forEach(function(prefix) {
-            var code = d[prefix + 'Code'];
-            var iso = code ? wonISO[code.toUpperCase()] : null;
-            if (iso) {
-                var flagEl = document.querySelector('[data-bg="' + prefix + 'Color"]');
-                if (flagEl) {
-                    flagEl.style.background = 'url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso + '.svg) center/cover no-repeat';
-                }
-            }
-        });
-
-        // Build sports banner carousel
+        // Build sports banner carousel (rebuild whenever images change)
         (function() {
             var images = [];
             if (d.sportsBannerImages && d.sportsBannerImages.length) {
@@ -321,7 +302,19 @@
                 images = [d.sportsPromoBannerImage];
             }
             var track = document.getElementById('sports-banner-track');
-            if (!track || images.length === 0) return;
+            if (!track) return;
+
+            // Skip rebuild if images haven't changed
+            var newKey = images.join('|');
+            if (track.dataset.loadedKey === newKey) return;
+            track.dataset.loadedKey = newKey;
+
+            // Clear old slides and interval
+            track.innerHTML = '';
+            track.style.transform = '';
+            if (window._sportsBannerTimer) clearInterval(window._sportsBannerTimer);
+
+            if (images.length === 0) return;
             images.forEach(function(img) {
                 var slide = document.createElement('div');
                 slide.style.cssText = 'min-width:100%;height:100%;background-image:url(' + img + ');background-size:cover;background-position:center;flex-shrink:0;';
@@ -329,36 +322,37 @@
             });
             if (images.length <= 1) return;
             var current = 0;
-            function goTo(idx) {
-                current = idx;
+            window._sportsBannerTimer = setInterval(function() {
+                current = (current + 1) % images.length;
                 track.style.transform = 'translateX(-' + (current * 100) + '%)';
-            }
-            setInterval(function() { goTo((current + 1) % images.length); }, 4000);
+            }, 4000);
         })();
 
-        // Country-to-Flag Mapping
-        var countryFlags = {
-            'IND': 'linear-gradient(to bottom, #ff9933 33%, #ffffff 33%, #ffffff 66%, #138808 66%)',
-            'AUS': 'radial-gradient(circle at 30% 30%, #012169 40%, #012169 60%)',
-            'PAK': 'linear-gradient(135deg, #006600 30%, #ffffff 30%, #ffffff 70%, #006600 70%)',
-            'ENG': 'linear-gradient(to right, white 100%)',
-            'SA': 'linear-gradient(135deg, #007749 40%, #FFB612 40%, #FFB612 60%, #007749 60%)',
-            'NAM': 'linear-gradient(135deg, #003580 25%, #c8102e 25%, #c8102e 50%, #138808 50%, #138808 75%, #ffd700 75%)',
-            'ZIM': 'linear-gradient(to bottom, #138808 20%, #ffd700 20%, #ffd700 40%, #d40000 40%, #d40000 60%, #000000 60%)',
-            'AFG': 'linear-gradient(to bottom, #000000 33%, #d32011 33%, #d32011 66%, #138808 66%)',
-            'IRE': 'linear-gradient(to right, #169b62 33%, white 33%, white 66%, #ff883e 66%)'
-        };
-        var countryNames = {
-            'IND': 'India', 'AUS': 'Australia', 'PAK': 'Pakistan', 'ENG': 'England',
-            'SA': 'South Africa', 'NAM': 'Namibia', 'ZIM': 'Zimbabwe',
-            'AFG': 'Afghanistan', 'IRE': 'Ireland'
-        };
-
-        // Render dynamic match cards
         renderMyMatches(d);
         renderSportsMatches(d);
         var ov = document.getElementById('nav-loading-overlay');
         if (ov) ov.classList.remove('active');
+    }
+
+    // Real-time listener — fires on page load AND on every admin save
+    comeDB.on('value', function(snapshot) {
+        applyData(snapshot.val() || {});
+    });
+
+    // Fallback poll every 15 seconds (in case real-time WebSocket drops)
+    setInterval(function() {
+        comeDB.once('value', function(snapshot) {
+            applyData(snapshot.val() || {});
+        });
+    }, 15000);
+
+    // Re-fetch when user switches back to this tab/app
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            comeDB.once('value', function(snapshot) {
+                applyData(snapshot.val() || {});
+            });
+        }
     });
 
     function renderMyMatches(d) {
@@ -366,18 +360,13 @@
         var container = document.getElementById('my-matches-container');
         if (!container) return;
 
-        // If no team code exists, do nothing (keep hidden)
-        if (!d.myTeam1Code || !d.myTeam2Code) {
-            container.style.display = 'none';
-            return;
-        }
-
+        // Always show the container
         container.style.display = 'block';
 
         var state = d.myMatchState || 'start'; // 'start' or 'won'
         
-        var logo1 = d.myTeam1Logo || 'https://placehold.co/24x24/333/fff?text=' + d.myTeam1Code;
-        var logo2 = d.myTeam2Logo || 'https://placehold.co/24x24/333/fff?text=' + d.myTeam2Code;
+        var logo1 = d.myTeam1Logo || 'https://placehold.co/24x24/333/fff?text=' + (d.myTeam1Code || 'KSO');
+        var logo2 = d.myTeam2Logo || 'https://placehold.co/24x24/333/fff?text=' + (d.myTeam2Code || 'SSS');
 
         var code1 = d.myTeam1Code || 'KSO';
         var name1 = d.myTeam1Name || 'Konark Suryas Odisha';
@@ -426,7 +415,7 @@
             html += `
                 <div style="position: relative; min-height: 96px;">
                     <div id="initial-party-card" style="position: absolute; inset: 0; background-color: #1e8e3e; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; z-index: 10; transition: opacity 0.3s ease-out;">🎉</div>
-                    <div id="won-match-card-dynamic" style="${cardStyle} opacity: 0; transform: scale(0.85); transition: opacity 0.3s ease, transform 0.3s ease;">
+                    <div id="won-match-card-dynamic" onclick="window.location.href='match_details.html'" style="${cardStyle} opacity: 0; transform: scale(0.85); transition: opacity 0.3s ease, transform 0.3s ease; cursor: pointer;">
                         <div style="display: flex; flex-direction: column; justify-content: center; gap: 10px; flex: 1; min-width: 0;">
                             <div style="display: flex; align-items: center; gap: 10px;">
                                 <img src="${logo1}" style="width: 28px; height: 28px; border-radius: 50%; object-fit: contain; background: transparent; flex-shrink: 0;">
