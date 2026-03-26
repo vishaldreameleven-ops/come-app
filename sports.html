@@ -243,8 +243,8 @@
             COME SPORTS
         </div>
 
-        <div style="margin: 10px 16px 12px; border-radius: 8px; overflow: hidden; position: relative; height: 100px;">
-            <div id="sports-banner-track" style="display:flex; height:100%; transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);"></div>
+        <div style="margin: 10px 16px 12px; border-radius: 8px; overflow: hidden; position: relative;">
+            <div id="sports-banner-track" style="display:flex; transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);"></div>
         </div>
 
         <div id="my-matches-container" style="display: none;"></div>
@@ -335,7 +335,11 @@
             if (images.length === 0) return;
             images.forEach(function(img) {
                 var slide = document.createElement('div');
-                slide.style.cssText = 'min-width:100%;height:100%;background-image:url(' + img + ');background-size:cover;background-position:center;flex-shrink:0;';
+                slide.style.cssText = 'min-width:100%;flex-shrink:0;';
+                var image = document.createElement('img');
+                image.src = img;
+                image.style.cssText = 'width:100%;height:auto;display:block;';
+                slide.appendChild(image);
                 track.appendChild(slide);
             });
             if (images.length <= 1) return;
