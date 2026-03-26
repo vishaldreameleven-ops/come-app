@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Come - Login</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            background: #0f111a;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        /* ── PHONE VIEW ── */
+        #view-phone {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background: #0f111a;
+        }
+
+        /* Banner image — takes the natural top portion */
+        .hero-section {
+            width: 100%;
+            flex-shrink: 0;
+        }
+
+        .hero-section img.banner {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Form below the image */
+        .form-section {
+            flex: 1;
+            padding: 18px 20px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            justify-content: flex-start;
+        }
+
+        .phone-input-wrap {
+            position: relative;
+            background: #1c1f2e;
+            border: 1.5px solid #2a2d3e;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            padding: 0 14px;
+            height: 52px;
+            transition: border-color 0.2s;
+        }
+
+        .phone-input-wrap.focused {
+            border-color: #2ec8c8;
+        }
+
+        .phone-prefix {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .phone-prefix.visible { display: flex; }
+
+        .phone-prefix .flag { font-size: 17px; }
+
+        .phone-prefix .code {
+            color: #aaa;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .phone-prefix .divider {
+            width: 1px;
+            height: 16px;
+            background: #3a3d50;
+            margin: 0 5px;
+        }
+
+        #phone-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        #phone-input::placeholder { color: #55586a; font-size: 14px; }
+
+        .clear-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 15px;
+            cursor: pointer;
+            padding: 4px 2px;
+            line-height: 1;
+        }
+
+        .clear-btn.visible { display: block; }
+
+        #continue-btn {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #1c3a3a;
+            color: #4a8888;
+            transition: background 0.2s, color 0.2s;
+            font-family: inherit;
+        }
+
+        #continue-btn.active {
+            background: linear-gradient(90deg, #17a2b8, #1dd1e0);
+            color: #fff;
+        }
+
+        /* ── OTP VIEW ── */
+        #view-otp {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            background: #0d1b2a;
+            padding: 24px 22px 32px;
+        }
+
+        .otp-back {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 20px;
+            cursor: pointer;
+            margin-bottom: 36px;
+        }
+
+        .otp-title {
+            font-size: 23px;
+            font-weight: 800;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        .otp-subtitle {
+            font-size: 13px;
+            color: #7a8fa3;
+            line-height: 1.6;
+            margin-bottom: 36px;
+        }
+
+        .otp-subtitle strong {
+            color: #b8ccd8;
+            font-weight: 600;
+        }
+
+        .otp-input-wrap {
+            display: flex;
+            align-items: center;
+            background: #1a2a3a;
+            border: 1.5px solid #2a3a4a;
+            border-radius: 12px;
+            padding: 0 14px;
+            height: 52px;
+            margin-bottom: 18px;
+            transition: border-color 0.2s;
+        }
+
+        .otp-input-wrap.focused { border-color: #2ec8c8; }
+
+        .shield-icon {
+            color: #2ec8c8;
+            font-size: 15px;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+
+        #otp-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #fff;
+            font-size: 16px;
+            font-family: inherit;
+            letter-spacing: 3px;
+        }
+
+        #otp-input::placeholder {
+            color: #3a4a5a;
+            font-size: 14px;
+            letter-spacing: 0;
+        }
+
+        .otp-timer {
+            color: #7a9ab0;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        #login-btn {
+            width: 100%;
+            height: 52px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            background: #1a3040;
+            color: #3a6a7a;
+            transition: background 0.2s, color 0.2s;
+            font-family: inherit;
+        }
+
+        #login-btn.active {
+            background: linear-gradient(90deg, #1a7a8a, #1ec8d8);
+            color: #fff;
+        }
+
+        .otp-toast {
+            display: none;
+            margin-top: 22px;
+            background: #1e2e3e;
+            color: #a8c0d0;
+            border-radius: 12px;
+            padding: 13px 16px;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .otp-toast.visible { display: block; }
+    </style>
+</head>
+<body>
+
+    <!-- ── PHONE VIEW ── -->
+    <div id="view-phone">
+        <!-- Banner image fills the top — no overlays, image already has all branding -->
+        <div class="hero-section">
+            <img class="banner" src="assets/login-banner.jpg" alt="Come Sports">
+        </div>
+
+        <div class="form-section">
+            <div class="phone-input-wrap" id="phone-wrap">
+                <div class="phone-prefix" id="phone-prefix">
+                    <span class="flag">🇮🇳</span>
+                    <span class="code">IN +91</span>
+                    <div class="divider"></div>
+                </div>
+                <input type="tel" id="phone-input" placeholder="Mobile No. (omit country code)" maxlength="10" inputmode="numeric">
+                <button class="clear-btn" id="clear-btn" onclick="clearPhone()">✕</button>
+            </div>
+
+            <button id="continue-btn" onclick="goToOtp()">Continue</button>
+        </div>
+    </div>
+
+    <!-- ── OTP VIEW ── -->
+    <div id="view-otp">
+        <div class="otp-back" onclick="backToPhone()">&#8249;</div>
+
+        <div class="otp-title">Enter Verification Code</div>
+        <div class="otp-subtitle">
+            Your verification code has been sent to<br>
+            <strong id="otp-phone-display">+91 XXXXXXXXXX</strong>
+        </div>
+
+        <div class="otp-input-wrap" id="otp-wrap">
+            <span class="shield-icon">&#9679;</span>
+            <input type="tel" id="otp-input" placeholder="Verification code" maxlength="6" inputmode="numeric">
+            <span class="otp-timer" id="otp-timer">60s</span>
+        </div>
+
+        <button id="login-btn" onclick="doLogin()">Log In</button>
+
+        <div class="otp-toast" id="otp-toast">Verification code sent.</div>
+    </div>
+
+    <script>
+        var phoneInput  = document.getElementById('phone-input');
+        var clearBtn    = document.getElementById('clear-btn');
+        var phonePrefix = document.getElementById('phone-prefix');
+        var continueBtn = document.getElementById('continue-btn');
+        var phoneWrap   = document.getElementById('phone-wrap');
+        var otpInput    = document.getElementById('otp-input');
+        var loginBtn    = document.getElementById('login-btn');
+        var otpWrap     = document.getElementById('otp-wrap');
+        var timerInterval = null;
+
+        phoneInput.addEventListener('input', function () {
+            var val = this.value.replace(/\D/g, '');
+            this.value = val;
+            var hasVal = val.length > 0;
+            phonePrefix.classList.toggle('visible', hasVal);
+            clearBtn.classList.toggle('visible', hasVal);
+            continueBtn.classList.toggle('active', hasVal);
+        });
+
+        phoneInput.addEventListener('focus', function () { phoneWrap.classList.add('focused'); });
+        phoneInput.addEventListener('blur',  function () { phoneWrap.classList.remove('focused'); });
+
+        otpInput.addEventListener('input', function () {
+            var val = this.value.replace(/\D/g, '');
+            this.value = val;
+            loginBtn.classList.toggle('active', val.length === 6);
+        });
+
+        otpInput.addEventListener('focus', function () { otpWrap.classList.add('focused'); });
+        otpInput.addEventListener('blur',  function () { otpWrap.classList.remove('focused'); });
+
+        function clearPhone() {
+            phoneInput.value = '';
+            phonePrefix.classList.remove('visible');
+            clearBtn.classList.remove('visible');
+            continueBtn.classList.remove('active');
+            phoneInput.focus();
+        }
+
+        function goToOtp() {
+            var num = phoneInput.value.replace(/\D/g, '');
+            if (!num) return;
+            document.getElementById('otp-phone-display').textContent = '+91 ' + num;
+            document.getElementById('view-phone').style.display = 'none';
+            document.getElementById('view-otp').style.display   = 'flex';
+            otpInput.value = '';
+            loginBtn.classList.remove('active');
+            startTimer();
+            setTimeout(function () {
+                var t = document.getElementById('otp-toast');
+                t.classList.add('visible');
+                setTimeout(function () { t.classList.remove('visible'); }, 3000);
+            }, 400);
+        }
+
+        function backToPhone() {
+            clearInterval(timerInterval);
+            document.getElementById('view-otp').style.display   = 'none';
+            document.getElementById('view-phone').style.display = 'flex';
+        }
+
+        function startTimer() {
+            clearInterval(timerInterval);
+            var secs = 60;
+            var el = document.getElementById('otp-timer');
+            el.textContent = secs + 's';
+            timerInterval = setInterval(function () {
+                secs--;
+                el.textContent = (secs > 0 ? secs : 0) + 's';
+                if (secs <= 0) clearInterval(timerInterval);
+            }, 1000);
+        }
+
+        function doLogin() {
+            if (otpInput.value.replace(/\D/g, '').length !== 6) return;
+            window.location.href = 'index.html';
+        }
+    </script>
+
+</body>
+</html>

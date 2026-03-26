@@ -697,12 +697,22 @@
                 <i class="fas fa-gift"></i>
                 <div class="badge">2</div>
             </div>
-            <div class="icon-btn">
+            <div class="icon-btn" id="profile-icon-btn" onclick="toggleLogoutMenu()">
                 <i class="fas fa-user-circle profile-icon"></i>
                 <div class="badge">45</div>
             </div>
         </div>
     </header>
+
+    <!-- Logout bottom sheet -->
+    <div id="logout-overlay" onclick="closeLogoutMenu()" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.55);"></div>
+    <div id="logout-sheet" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:9999;background:#1a1d2e;border-radius:18px 18px 0 0;padding:20px 20px 32px;">
+        <div style="width:40px;height:4px;background:#444;border-radius:2px;margin:0 auto 18px;"></div>
+        <div style="text-align:center;font-size:15px;font-weight:700;color:#fff;margin-bottom:18px;">Account</div>
+        <button onclick="doLogout()" style="width:100%;padding:14px;background:#e74c3c;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:0.3px;">Logout</button>
+    </div>
+    <!-- Logout toast -->
+    <div id="logout-toast" style="display:none;position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:rgba(30,34,50,0.96);color:#fff;padding:12px 24px;border-radius:24px;font-size:13px;z-index:10000;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,0.4);">You have been logged out.</div>
 
     <nav class="categories">
         <a href="index.html" style="text-decoration: none;">
@@ -1033,6 +1043,27 @@
         // Tap anywhere on splash to skip
         splash.addEventListener('click', function() { dismissSplash(); });
     })();
+
+    // --- LOGOUT ---
+    function toggleLogoutMenu() {
+        var sheet = document.getElementById('logout-sheet');
+        var overlay = document.getElementById('logout-overlay');
+        var isOpen = sheet.style.display !== 'none';
+        sheet.style.display = isOpen ? 'none' : 'block';
+        overlay.style.display = isOpen ? 'none' : 'block';
+    }
+    function closeLogoutMenu() {
+        document.getElementById('logout-sheet').style.display = 'none';
+        document.getElementById('logout-overlay').style.display = 'none';
+    }
+    function doLogout() {
+        closeLogoutMenu();
+        var toast = document.getElementById('logout-toast');
+        toast.style.display = 'block';
+        setTimeout(function() {
+            window.location.href = 'login.html';
+        }, 1500);
+    }
     </script>
 
 </body>
