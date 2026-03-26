@@ -586,6 +586,31 @@
 
 
         /* --- NAVIGATION LOADING OVERLAY --- */
+        /* --- SPLASH SCREEN --- */
+        #splash-screen {
+            display: flex;
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #000;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s ease;
+        }
+        #splash-screen.fade-out {
+            opacity: 0;
+            pointer-events: none;
+        }
+        #splash-video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+
+        /* --- NAVIGATION LOADING OVERLAY --- */
         #nav-loading-overlay {
             display: none;
             position: fixed;
@@ -594,15 +619,19 @@
             right: 0;
             bottom: 0;
             z-index: 99;
-            background-image: url('assets/ipl-loading.png');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
+            background: #000;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
+            gap: 24px;
         }
         #nav-loading-overlay.active {
             display: flex;
+        }
+        #nav-loading-overlay .nav-logo {
+            width: 140px;
+            height: auto;
+            object-fit: contain;
         }
         .rainbow-ring {
             width: 72px;
@@ -653,7 +682,7 @@
 
     <header>
         <a href="admin.html" style="text-decoration:none;">
-            <img src="assets/icons/come-logo-text.png" alt="Come" style="height:36px;width:auto;">
+            <img src="assets/come-logo.png" alt="Come" style="height:36px;width:auto;object-fit:contain;">
         </a>
         <div class="balance-container">
             <div class="flag-icon"></div>
@@ -800,7 +829,10 @@
     function renderMatches(d) {
         if (!d) d = JSON.parse(localStorage.getItem('comeData') || '{}');
         var matches = [];
-        if (d.matchTeam1Code && d.matchTeam2Code) {
+        // Use unified matchCards array; fallback to legacy single-match fields for migration
+        if (d.matchCards && d.matchCards.length > 0) {
+            matches = d.matchCards;
+        } else if (d.matchTeam1Code && d.matchTeam2Code) {
             matches.push({
                 team1Code: d.matchTeam1Code, team2Code: d.matchTeam2Code,
                 team1Name: d.matchTeam1Name, team2Name: d.matchTeam2Name,
@@ -810,8 +842,9 @@
                 time: d.matchTimeValue || '11:00 AM',
                 prize: d.matchPrize || '₹10.57M', showCountdown: false
             });
+        } else {
+            matches = getDefaultMatches();
         }
-        if (matches.length === 0) matches = d.matchCards || getDefaultMatches();
         var container = document.getElementById('match-cards-container');
         if (!container) return;
         container.innerHTML = '';
@@ -860,12 +893,21 @@
         var team2Name = match.team2Name || countryNames[match.team2Code] || match.team2Code;
         var iso1 = countryISO[match.team1Code];
         var iso2 = countryISO[match.team2Code];
-        var team1FlagStyle = iso1 ?
-            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso1 + '.svg);background-size:cover;background-position:center;' :
-            'background:' + (match.team1Color || countryFlags[match.team1Code] || '#555') + ';';
-        var team2FlagStyle = iso2 ?
-            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso2 + '.svg);background-size:cover;background-position:center;' :
-            'background:' + (match.team2Color || countryFlags[match.team2Code] || '#555') + ';';
+        var team1FlagStyle, team2FlagStyle;
+        if (match.team1Logo) {
+            team1FlagStyle = 'background-image:url(' + match.team1Logo + ');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;';
+        } else if (iso1) {
+            team1FlagStyle = 'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso1 + '.svg);background-size:cover;background-position:center;';
+        } else {
+            team1FlagStyle = 'background:' + (match.team1Color || countryFlags[match.team1Code] || '#555') + ';';
+        }
+        if (match.team2Logo) {
+            team2FlagStyle = 'background-image:url(' + match.team2Logo + ');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;';
+        } else if (iso2) {
+            team2FlagStyle = 'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso2 + '.svg);background-size:cover;background-position:center;';
+        } else {
+            team2FlagStyle = 'background:' + (match.team2Color || countryFlags[match.team2Code] || '#555') + ';';
+        }
         var div = document.createElement('div');
         div.className = 'match-card';
         div.innerHTML = `
@@ -926,8 +968,14 @@
     }
     </script>
 
+    <!-- Splash Screen (video intro, shown once per session) -->
+    <div id="splash-screen">
+        <video id="splash-video" src="assets/splash.mp4" autoplay muted playsinline webkit-playsinline></video>
+    </div>
+
     <!-- Navigation Loading Overlay -->
     <div id="nav-loading-overlay" class="active">
+        <img class="nav-logo" src="assets/come-logo.png" alt="Come">
         <div class="rainbow-ring"></div>
     </div>
 
@@ -950,6 +998,40 @@
                 });
             }
         });
+    })();
+
+    // ── Splash Screen Logic ──────────────────────────────────────
+    (function() {
+        var splash = document.getElementById('splash-screen');
+        var video  = document.getElementById('splash-video');
+        if (!splash || !video) return;
+
+        // Show splash only once per app session
+        if (sessionStorage.getItem('splashDone')) {
+            splash.style.display = 'none';
+            return;
+        }
+
+        // Dismiss splash with fade-out
+        window.dismissSplash = function() {
+            if (splash.classList.contains('fade-out')) return;
+            splash.classList.add('fade-out');
+            setTimeout(function() {
+                splash.style.display = 'none';
+                sessionStorage.setItem('splashDone', '1');
+            }, 600);
+        };
+
+        // Auto-dismiss when video ends
+        video.addEventListener('ended', function() {
+            dismissSplash();
+        });
+
+        // Fallback: dismiss after 8s in case video fails to load/play
+        setTimeout(function() { dismissSplash(); }, 8000);
+
+        // Tap anywhere on splash to skip
+        splash.addEventListener('click', function() { dismissSplash(); });
     })();
     </script>
 

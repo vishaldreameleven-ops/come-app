@@ -480,8 +480,10 @@
         if (!d) d = JSON.parse(localStorage.getItem('comeData') || '{}');
         var matches = [];
 
-        // Build matches from Sports Match Card 1 admin section
-        if (d.sp1Team1Code && d.sp1Team2Code) {
+        // Use unified matchCards array; fallback to legacy sp1/sp2 fields for migration
+        if (d.matchCards && d.matchCards.length > 0) {
+            matches = d.matchCards;
+        } else if (d.sp1Team1Code && d.sp1Team2Code) {
             matches.push({
                 team1Code: d.sp1Team1Code, team2Code: d.sp1Team2Code,
                 team1Name: d.sp1Team1Name, team2Name: d.sp1Team2Name,
@@ -491,22 +493,18 @@
                 time: d.sp1TimeValue || '11:00 AM',
                 prize: d.sp1Prize || '₹1.0 Crores+'
             });
+            if (d.sp2Team1Code && d.sp2Team2Code) {
+                matches.push({
+                    team1Code: d.sp2Team1Code, team2Code: d.sp2Team2Code,
+                    team1Name: d.sp2Team1Name, team2Name: d.sp2Team2Name,
+                    team1Color: d.sp2Team1Color, team2Color: d.sp2Team2Color,
+                    league: d.sp2League || "T20 · ICC MT20 WC, 2026",
+                    timeLabel: d.sp2TimeLabel || 'Tomorrow',
+                    time: d.sp2TimeValue || '03:00 PM',
+                    prize: d.sp2Prize || '₹1.0 Crores+'
+                });
+            }
         }
-
-        // Build matches from Sports Match Card 2 admin section
-        if (d.sp2Team1Code && d.sp2Team2Code) {
-            matches.push({
-                team1Code: d.sp2Team1Code, team2Code: d.sp2Team2Code,
-                team1Name: d.sp2Team1Name, team2Name: d.sp2Team2Name,
-                team1Color: d.sp2Team1Color, team2Color: d.sp2Team2Color,
-                league: d.sp2League || "T20 · ICC MT20 WC, 2026",
-                timeLabel: d.sp2TimeLabel || 'Tomorrow',
-                time: d.sp2TimeValue || '03:00 PM',
-                prize: d.sp2Prize || '₹1.0 Crores+'
-            });
-        }
-
-        if (matches.length === 0) matches = d.matchCards || [];
 
         var container = document.getElementById('sports-match-cards-container');
         if (!container || matches.length === 0) return;
@@ -547,12 +545,21 @@
 
         var iso1 = countryISO[match.team1Code];
         var iso2 = countryISO[match.team2Code];
-        var team1FlagStyle = iso1 ?
-            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso1 + '.svg);background-size:cover;background-position:center;' :
-            'background:' + (match.team1Color || countryFlags[match.team1Code] || '#555') + ';';
-        var team2FlagStyle = iso2 ?
-            'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso2 + '.svg);background-size:cover;background-position:center;' :
-            'background:' + (match.team2Color || countryFlags[match.team2Code] || '#555') + ';';
+        var team1FlagStyle, team2FlagStyle;
+        if (match.team1Logo) {
+            team1FlagStyle = 'background-image:url(' + match.team1Logo + ');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;';
+        } else if (iso1) {
+            team1FlagStyle = 'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso1 + '.svg);background-size:cover;background-position:center;';
+        } else {
+            team1FlagStyle = 'background:' + (match.team1Color || countryFlags[match.team1Code] || '#555') + ';';
+        }
+        if (match.team2Logo) {
+            team2FlagStyle = 'background-image:url(' + match.team2Logo + ');background-size:contain;background-repeat:no-repeat;background-position:center;background-color:#fff;';
+        } else if (iso2) {
+            team2FlagStyle = 'background-image:url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso2 + '.svg);background-size:cover;background-position:center;';
+        } else {
+            team2FlagStyle = 'background:' + (match.team2Color || countryFlags[match.team2Code] || '#555') + ';';
+        }
 
         var div = document.createElement('div');
         div.className = 'match-card-white';
