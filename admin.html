@@ -375,6 +375,23 @@
                 </div>
             </div>
 
+            <!-- WINNER TEAM IMAGE -->
+            <div class="section">
+                <div class="section-header" onclick="toggleSection(this)">Winner Team Image <span class="arrow">&#9660;</span></div>
+                <div class="section-body">
+                    <div class="field">
+                        <label>Winner Team Image</label>
+                        <div class="drop-zone" id="winnerTeamImgDropZone">
+                            <input type="file" id="winnerTeamImgFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="winnerTeamImgPreview"><img id="winnerTeamImgPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="winnerTeamImgRemove" onclick="removeImage('winnerTeamImage','winnerTeamImgPreview','winnerTeamImgRemove','winnerTeamImgFile')">Remove</span>
+                    </div>
+                </div>
+            </div>
+
         </form>
     </div>
 
@@ -640,6 +657,7 @@
         setupFilePicker('catJackpotFile', 'catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove');
         setupFilePicker('myTeam1LogoFile', 'myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove');
         setupFilePicker('myTeam2LogoFile', 'myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove');
+        setupFilePicker('winnerTeamImgFile', 'winnerTeamImage', 'winnerTeamImgPreview', 'winnerTeamImgPreviewImg', 'winnerTeamImgRemove');
 
         function showPreview(previewId, imgId, removeId, src) {
             var wrap = document.getElementById(previewId);
@@ -718,7 +736,8 @@
                     ['catRummyImg', 'catRummyPreview', 'catRummyPreviewImg', 'catRummyRemove'],
                     ['catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove'],
                     ['myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove'],
-                    ['myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove']
+                    ['myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove'],
+                    ['winnerTeamImage', 'winnerTeamImgPreview', 'winnerTeamImgPreviewImg', 'winnerTeamImgRemove']
                 ];
                 imgFields.forEach(function(f) {
                     if (data[f[0]]) {
