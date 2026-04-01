@@ -37,6 +37,29 @@
             text-align: center; color: #999; font-size: 14px; padding: 40px 20px;
         }
         .no-image i { font-size: 48px; color: #ccc; margin-bottom: 12px; display: block; }
+
+        /* --- NAVIGATION LOADING OVERLAY --- */
+        #nav-loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 99;
+            background-image: url('assets/ipl-loading.png');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            align-items: center;
+            justify-content: center;
+        }
+        #nav-loading-overlay.active { display: flex; }
+        .rainbow-ring {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: conic-gradient(from 0deg,#ff0000 0deg,#ff8c00 45deg,#ffe400 90deg,#00e000 135deg,#00cfff 180deg,#0055ff 225deg,#cc00ff 270deg,#ff0000 360deg);
+            -webkit-mask: radial-gradient(circle, transparent 44%, black 45%);
+            mask: radial-gradient(circle, transparent 44%, black 45%);
+            animation: rainbow-spin 0.9s linear infinite;
+        }
+        @keyframes rainbow-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -57,21 +80,46 @@
     </div>
 
     <script>
+    // Cache-first: render instantly from localStorage if image is already cached
+    (function() {
+        var cached = JSON.parse(localStorage.getItem('comeData') || '{}');
+        if (cached.winnerTeamImage) {
+            document.getElementById('winnerImg').src = cached.winnerTeamImage;
+            document.getElementById('imgWrap').style.display = 'block';
+            document.getElementById('noImageMsg').style.display = 'none';
+            var ov = document.getElementById('nav-loading-overlay');
+            if (ov) ov.classList.remove('active');
+        }
+    })();
+
+    // Firebase fetch — updates image if fresher data exists
     comeDB.once('value', function(snapshot) {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
         var d = snapshot.val() || {};
         if (d.winnerTeamImage) {
-            var img = document.getElementById('winnerImg');
-            var wrap = document.getElementById('imgWrap');
-            var msg = document.getElementById('noImageMsg');
-            img.src = d.winnerTeamImage;
-            wrap.style.display = 'block';
-            msg.style.display = 'none';
+            document.getElementById('winnerImg').src = d.winnerTeamImage;
+            document.getElementById('imgWrap').style.display = 'block';
+            document.getElementById('noImageMsg').style.display = 'none';
             showAppToast('Winner data loaded', 'success');
         }
     }, function(error) {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
         showAppToast('Could not load winner data \u2014 check connection', 'error');
     });
+
+    // 5s fallback — hide overlay even if Firebase never responds
+    setTimeout(function() {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
+    }, 5000);
     </script>
+
+    <!-- Navigation Loading Overlay -->
+    <div id="nav-loading-overlay" class="active">
+        <div class="rainbow-ring"></div>
+    </div>
 
 </body>
 </html>

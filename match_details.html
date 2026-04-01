@@ -28,6 +28,29 @@
         body { background-color: var(--bg-light); padding-bottom: 60px; }
         a { text-decoration: none; color: inherit; }
 
+        /* --- NAVIGATION LOADING OVERLAY --- */
+        #nav-loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 99;
+            background-image: url('assets/ipl-loading.png');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            align-items: center;
+            justify-content: center;
+        }
+        #nav-loading-overlay.active { display: flex; }
+        .rainbow-ring {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: conic-gradient(from 0deg,#ff0000 0deg,#ff8c00 45deg,#ffe400 90deg,#00e000 135deg,#00cfff 180deg,#0055ff 225deg,#cc00ff 270deg,#ff0000 360deg);
+            -webkit-mask: radial-gradient(circle, transparent 44%, black 45%);
+            mask: radial-gradient(circle, transparent 44%, black 45%);
+            animation: rainbow-spin 0.9s linear infinite;
+        }
+        @keyframes rainbow-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
         /* --- HEADER --- */
         .details-header {
             display: flex; align-items: center; justify-content: space-between;
@@ -329,7 +352,7 @@
             <i class="fas fa-shield-alt" style="color:#888;"></i> Keep winnings safe. We never ask for OTP.
         </div>
 
-        <div class="contest-card" onclick="window.location.href='winner_team.html'" style="cursor:pointer;">
+        <div class="contest-card" onclick="(function(){var ov=document.getElementById('nav-loading-overlay');if(ov)ov.classList.add('active');setTimeout(function(){window.location.href='winner_team.html';},80);})()" style="cursor:pointer;">
             <div class="contest-header">
                 <div class="guaranteed-tag">
                     <i class="fas fa-check-circle" style="color:#888;"></i> Guaranteed <i>plus</i><sup>+</sup>
@@ -379,7 +402,15 @@
     </nav>
 
     <script>
+    // 5s fallback — hide overlay if Firebase never responds
+    setTimeout(function() {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
+    }, 5000);
+
     comeDB.once('value', function(snapshot) {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
         var d = snapshot.val() || {};
         if (d && Object.keys(d).length) {
             try {
@@ -464,9 +495,16 @@
         }
         showAppToast('Match details loaded', 'success');
     }, function(error) {
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
         showAppToast('Could not load match details \u2014 check connection', 'error');
     });
     </script>
+
+    <!-- Navigation Loading Overlay -->
+    <div id="nav-loading-overlay" class="active">
+        <div class="rainbow-ring"></div>
+    </div>
 
 </body>
 </html>
