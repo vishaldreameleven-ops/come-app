@@ -778,13 +778,23 @@
     </nav>
 
     <script>
-    // Load data from Firebase, fall back to cached localStorage while loading
-    comeDB.once('value', function(snapshot) {
-        var d = snapshot.val() || {};
+    var _indexDataRendered = false;
+
+    function _indexApplyAndReveal(d, source) {
+        if (_indexDataRendered) return;
+        _indexDataRendered = true;
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
+        if (source === 'firebase') {
+            showAppToast('Data loaded', 'success');
+        } else if (source === 'cache') {
+            showAppToast('Offline \u2014 showing cached data', 'warn');
+        } else if (source === 'error') {
+            showAppToast('Could not connect to server', 'error');
+        }
         // Keep localStorage in sync for offline fallback
-        if (d && Object.keys(d).length) {
+        if (source === 'firebase' && d && Object.keys(d).length) {
             try {
-                // Strip base64 image blobs before caching to avoid exceeding localStorage quota
                 var cacheable = JSON.parse(JSON.stringify(d));
                 (function stripBase64(obj) {
                     if (!obj || typeof obj !== 'object') return;
@@ -797,9 +807,8 @@
                     });
                 })(cacheable);
                 localStorage.setItem('comeData', JSON.stringify(cacheable));
-            } catch(e) { /* quota exceeded — skip cache */ }
+            } catch(e) {}
         }
-
         var el = document.getElementById('status-time');
         if (el && d.statusBarTime) el.textContent = d.statusBarTime;
         document.querySelectorAll('[data-field]').forEach(function(el) {
@@ -807,49 +816,57 @@
                 el.textContent = d[el.dataset.field];
             }
         });
-        // Build carousel
-        (function() {
-            var images = [];
-            if (d.carouselImages && d.carouselImages.length) {
-                images = d.carouselImages.filter(Boolean);
-            } else if (d.heroBannerImage) {
-                images = [d.heroBannerImage];
-            }
-            var track = document.getElementById('carousel-track');
-            var dotsContainer = document.getElementById('carousel-dots');
-            if (!track) return;
-            if (images.length === 0) {
-                images = [
-                    'https://via.placeholder.com/400x200/1a1040/ffffff?text=Slide+1',
-                    'https://via.placeholder.com/400x200/0d2060/ffffff?text=Slide+2'
-                ];
-            }
-            images.forEach(function(img, i) {
-                var slide = document.createElement('div');
-                slide.className = 'carousel-slide';
-                slide.style.backgroundImage = 'url(' + img + ')';
-                track.appendChild(slide);
-                if (images.length > 1) {
-                    var dot = document.createElement('div');
-                    dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
-                    dot.onclick = (function(idx) { return function() { goToSlide(idx); }; })(i);
-                    dotsContainer.appendChild(dot);
-                }
-            });
-            if (images.length <= 1) return;
-            var current = 0;
-            function goToSlide(idx) {
-                current = idx;
-                track.style.transform = 'translateX(-' + (current * 100) + '%)';
-                document.querySelectorAll('.carousel-dot').forEach(function(dot, i) {
-                    dot.classList.toggle('active', i === current);
-                });
-            }
-            setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
-        })();
+        _indexBuildCarousel(d);
         renderMatches(d);
-        var ov = document.getElementById('nav-loading-overlay');
-        if (ov) ov.classList.remove('active');
+    }
+
+    // Load data from Firebase, fall back to cached localStorage while loading
+    function _indexBuildCarousel(d) {
+        var images = [];
+        if (d.carouselImages && d.carouselImages.length) {
+            images = d.carouselImages.filter(Boolean);
+        } else if (d.heroBannerImage) {
+            images = [d.heroBannerImage];
+        }
+        var track = document.getElementById('carousel-track');
+        var dotsContainer = document.getElementById('carousel-dots');
+        if (!track) return;
+        if (images.length === 0) {
+            images = [
+                'https://via.placeholder.com/400x200/1a1040/ffffff?text=Slide+1',
+                'https://via.placeholder.com/400x200/0d2060/ffffff?text=Slide+2'
+            ];
+        }
+        images.forEach(function(img, i) {
+            var slide = document.createElement('div');
+            slide.className = 'carousel-slide';
+            slide.style.backgroundImage = 'url(' + img + ')';
+            track.appendChild(slide);
+            if (images.length > 1) {
+                var dot = document.createElement('div');
+                dot.className = 'carousel-dot' + (i === 0 ? ' active' : '');
+                dot.onclick = (function(idx) { return function() { goToSlide(idx); }; })(i);
+                dotsContainer.appendChild(dot);
+            }
+        });
+        if (images.length <= 1) return;
+        var current = 0;
+        function goToSlide(idx) {
+            current = idx;
+            track.style.transform = 'translateX(-' + (current * 100) + '%)';
+            document.querySelectorAll('.carousel-dot').forEach(function(dot, i) {
+                dot.classList.toggle('active', i === current);
+            });
+        }
+        setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
+    }
+
+    comeDB.once('value', function(snapshot) {
+        _indexApplyAndReveal(snapshot.val() || {}, 'firebase');
+    }, function(error) {
+        // Firebase denied or unreachable — fall back to last cached data
+        var cached = JSON.parse(localStorage.getItem('comeData') || '{}');
+        _indexApplyAndReveal(cached, Object.keys(cached).length ? 'cache' : 'error');
     });
 
     function renderMatches(d) {
@@ -1006,10 +1023,11 @@
     </div>
 
     <script>
-    // Fallback: hide overlay after 5s if Firebase never responds
+    // Fallback: if Firebase hasn't responded in 5s, render from cache and show feedback
     setTimeout(function() {
-        var ov = document.getElementById('nav-loading-overlay');
-        if (ov) ov.classList.remove('active');
+        if (_indexDataRendered) return;
+        var cached = JSON.parse(localStorage.getItem('comeData') || '{}');
+        _indexApplyAndReveal(cached, Object.keys(cached).length ? 'cache' : 'error');
     }, 5000);
 
     (function() {
