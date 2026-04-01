@@ -782,7 +782,23 @@
     comeDB.once('value', function(snapshot) {
         var d = snapshot.val() || {};
         // Keep localStorage in sync for offline fallback
-        if (d && Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
+        if (d && Object.keys(d).length) {
+            try {
+                // Strip base64 image blobs before caching to avoid exceeding localStorage quota
+                var cacheable = JSON.parse(JSON.stringify(d));
+                (function stripBase64(obj) {
+                    if (!obj || typeof obj !== 'object') return;
+                    Object.keys(obj).forEach(function(k) {
+                        if (typeof obj[k] === 'string' && obj[k].startsWith('data:')) {
+                            delete obj[k];
+                        } else {
+                            stripBase64(obj[k]);
+                        }
+                    });
+                })(cacheable);
+                localStorage.setItem('comeData', JSON.stringify(cacheable));
+            } catch(e) { /* quota exceeded — skip cache */ }
+        }
 
         var el = document.getElementById('status-time');
         if (el && d.statusBarTime) el.textContent = d.statusBarTime;

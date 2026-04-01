@@ -294,7 +294,22 @@
     <script>
     function applyData(d) {
         if (!d || typeof d !== 'object') return;
-        if (Object.keys(d).length) localStorage.setItem('comeData', JSON.stringify(d));
+        if (Object.keys(d).length) {
+            try {
+                var cacheable = JSON.parse(JSON.stringify(d));
+                (function stripBase64(obj) {
+                    if (!obj || typeof obj !== 'object') return;
+                    Object.keys(obj).forEach(function(k) {
+                        if (typeof obj[k] === 'string' && obj[k].startsWith('data:')) {
+                            delete obj[k];
+                        } else {
+                            stripBase64(obj[k]);
+                        }
+                    });
+                })(cacheable);
+                localStorage.setItem('comeData', JSON.stringify(cacheable));
+            } catch(e) { /* quota exceeded — skip cache */ }
+        }
 
         var stEl = document.getElementById('status-time');
         if (stEl && d.statusBarTime) stEl.textContent = d.statusBarTime;
