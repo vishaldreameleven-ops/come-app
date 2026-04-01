@@ -462,6 +462,9 @@
             }
             if (scoreCard) scoreCard.style.display = 'none';
         }
+        showAppToast('Match details loaded', 'success');
+    }, function(error) {
+        showAppToast('Could not load match details \u2014 check connection', 'error');
     });
     </script>
 
