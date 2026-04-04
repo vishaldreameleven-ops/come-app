@@ -76,6 +76,47 @@
 
         <form id="adminForm">
 
+            <!-- QUICK AMOUNT SYNC -->
+            <div class="section" style="border-color:#f1c40f44;">
+                <div class="section-header" onclick="toggleSection(this)" style="background:#1c1a08;color:#f1c40f;">
+                    ⚡ Quick Amount Sync <span style="font-size:10px;font-weight:400;color:#8b9bb4;text-transform:none;letter-spacing:0;margin-left:6px;">type once → updates all</span><span class="arrow">&#9660;</span>
+                </div>
+                <div class="section-body">
+                    <p style="font-size:11px;color:#8b9bb4;">Set one master amount — wallet balance, winning amounts &amp; prize will all auto-fill below.</p>
+                    <div class="field">
+                        <label>Master Amount (₹)</label>
+                        <input type="text" id="masterAmountInput" placeholder="e.g. 3918609" oninput="syncAllAmounts(this.value)" style="font-size:20px;font-weight:800;color:#f1c40f;border-color:#f1c40f55;letter-spacing:1px;">
+                    </div>
+                    <div style="background:#0f111a;border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:11px;color:#8b9bb4;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Wallet Balance</span>
+                            <span id="prev_balance" style="color:#2ecc71;font-weight:700;font-size:13px;">—</span>
+                        </div>
+                        <div style="height:1px;background:#232b3e;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:11px;color:#8b9bb4;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Match Won (Sports)</span>
+                            <span id="prev_myMatchWonAmount" style="color:#2ecc71;font-weight:700;font-size:13px;">—</span>
+                        </div>
+                        <div style="height:1px;background:#232b3e;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:11px;color:#8b9bb4;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Match Details Won</span>
+                            <span id="prev_detWonAmount" style="color:#2ecc71;font-weight:700;font-size:13px;">—</span>
+                        </div>
+                        <div style="height:1px;background:#232b3e;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:11px;color:#8b9bb4;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">1st Rank Won Text</span>
+                            <span id="prev_detUser1Won" style="color:#2ecc71;font-weight:700;font-size:13px;">—</span>
+                        </div>
+                        <div style="height:1px;background:#232b3e;"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:4px;">
+                            <span style="font-size:11px;color:#8b9bb4;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;">Top Prize (Lakh)</span>
+                            <span id="prev_detTopPrize" style="color:#2ecc71;font-weight:700;font-size:13px;">—</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="applyMasterAmount()" style="width:100%;padding:14px;background:linear-gradient(135deg,#f1c40f,#e67e22);color:#000;border:none;border-radius:10px;font-size:13px;font-weight:800;cursor:pointer;letter-spacing:1px;text-transform:uppercase;">⚡ Apply to All Fields</button>
+                </div>
+            </div>
+
             <!-- GENERAL -->
             <div class="section">
                 <div class="section-header" onclick="toggleSection(this)">General <span class="arrow">&#9660;</span></div>
@@ -406,6 +447,36 @@
     <script>
         // Temporary holder for base64 image data
         var pendingImages = {};
+
+        // ---- QUICK AMOUNT SYNC ----
+        function syncAllAmounts(val) {
+            var raw = parseInt((val || '').replace(/[^\d]/g, '')) || 0;
+            var lakhStr = raw ? ('₹' + (raw / 100000).toFixed(2) + ' L') : '—';
+            document.getElementById('prev_balance').textContent           = raw ? String(raw) : '—';
+            document.getElementById('prev_myMatchWonAmount').textContent  = raw ? ('Won ₹' + raw) : '—';
+            document.getElementById('prev_detWonAmount').textContent      = raw ? ('₹' + raw) : '—';
+            document.getElementById('prev_detUser1Won').textContent       = raw ? ("You've won ₹" + raw) : '—';
+            document.getElementById('prev_detTopPrize').textContent       = lakhStr;
+        }
+
+        function applyMasterAmount() {
+            var val = document.getElementById('masterAmountInput').value;
+            var raw = parseInt((val || '').replace(/[^\d]/g, '')) || 0;
+            if (!raw) { showToast('Enter a valid amount first'); return; }
+            var lakhStr = '₹' + (raw / 100000).toFixed(2) + ' L';
+            var updates = {
+                'balance':            String(raw),
+                'myMatchWonAmount':   'Won ₹' + raw,
+                'detWonAmount':       '₹' + raw,
+                'detUser1Won':        "You've won ₹" + raw,
+                'detTopPrize':        lakhStr
+            };
+            Object.keys(updates).forEach(function(name) {
+                var el = document.querySelector('input[name="' + name + '"]');
+                if (el) el.value = updates[name];
+            });
+            showToast('All amounts updated ✓');
+        }
 
         // Country-to-Flag mapping for live preview
         var countryFlags = {
