@@ -831,6 +831,13 @@
         var track = document.getElementById('carousel-track');
         var dotsContainer = document.getElementById('carousel-dots');
         if (!track) return;
+
+        // Clear previous slides and interval before rebuilding
+        track.innerHTML = '';
+        track.style.transform = '';
+        if (dotsContainer) dotsContainer.innerHTML = '';
+        if (window._indexCarouselTimer) { clearInterval(window._indexCarouselTimer); window._indexCarouselTimer = null; }
+
         if (images.length === 0) {
             images = [
                 'https://via.placeholder.com/400x200/1a1040/ffffff?text=Slide+1',
@@ -858,7 +865,7 @@
                 dot.classList.toggle('active', i === current);
             });
         }
-        setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
+        window._indexCarouselTimer = setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
     }
 
     // Immediate cache-first render — show data instantly without waiting for Firebase
