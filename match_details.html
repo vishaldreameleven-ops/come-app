@@ -24,7 +24,8 @@
             --accent-red: #e74c3c;
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; scrollbar-width: none; -ms-overflow-style: none; }
+        *::-webkit-scrollbar { display: none; }
         body { background-color: var(--bg-light); padding-bottom: 60px; }
         a { text-decoration: none; color: inherit; }
 
@@ -330,66 +331,89 @@
     </div>
 
     <div class="tabs-nav">
-        <div class="tab-item active">My Contests (1)</div>
-        <div class="tab-item">Teams (1)</div>
-        <div class="tab-item">Commentary</div>
-        <div class="tab-item">Winnings</div>
+        <div class="tab-item active" onclick="switchTab('winnings', this)">Winnings</div>
+        <div class="tab-item" onclick="switchTab('leaderboard', this)">Leaderboard</div>
+        <div class="tab-item" onclick="switchTab('commentary', this)">Commentary</div>
+        <div class="tab-item" onclick="switchTab('stats', this)">Stats</div>
     </div>
 
     <div class="content-area">
 
-        <div class="winner-status-card">
-            <div class="status-content">
-                <div class="won-title" data-field="detWonTitle">You have won in 1 contests!</div>
-                <div class="won-amount-huge" data-field="detWonAmount">₹49</div>
-                <div class="breakup-link">View breakup <i class="fas fa-chevron-right" style="font-size: 10px;"></i></div>
+        <!-- WINNINGS TAB -->
+        <div id="tab-winnings" class="tab-panel">
+            <div class="winner-status-card">
+                <div class="status-content">
+                    <div class="won-title" data-field="detWonTitle">You have won in 1 contests!</div>
+                    <div class="won-amount-huge" data-field="detWonAmount">₹49</div>
+                    <div class="breakup-link">View breakup <i class="fas fa-chevron-right" style="font-size: 10px;"></i></div>
+                </div>
+                <div class="trophy-illustration-right">
+                    <img src="assets/icons/trophy.jpeg" alt="Trophy" style="width: 100%; height: 100%; object-fit: contain;">
+                </div>
             </div>
-            <div class="trophy-illustration-right">
-                <img src="assets/icons/trophy.jpeg" alt="Trophy" style="width: 100%; height: 100%; object-fit: contain;">
+            <div class="security-msg">
+                <i class="fas fa-shield-alt" style="color:#888;"></i> Keep winnings safe. We never ask for OTP.
+            </div>
+
+            <div class="contest-card" onclick="(function(){var ov=document.getElementById('nav-loading-overlay');if(ov)ov.classList.add('active');setTimeout(function(){window.location.href='winner_team.html';},80);})()" style="cursor:pointer;">
+                <div class="contest-header">
+                    <div class="guaranteed-tag">
+                        <i class="fas fa-check-circle" style="color:#888;"></i> Guaranteed <i>plus</i><sup>+</sup>
+                        <strong style="color:black; margin-left: 5px;" data-field="detContestPrize">₹2.56 Crores</strong>
+                    </div>
+                    <div class="entry-fee">Entry <strong data-field="detEntryFee">₹49</strong></div>
+                </div>
+                <div class="contest-stats-row">
+                    <div class="stat-item"><span style="font-size:13px;">&#9312;</span> <span data-field="detTopPrize">₹44.29 L</span></div>
+                    <div class="stat-item"><i class="fas fa-trophy" style="color:#ccc;"></i> <span data-field="detWinPct">56%</span></div>
+                    <div class="stat-item">&#9410; 20</div>
+                    <div class="stat-item" data-field="detSpots">607808 Spots</div>
+                </div>
+
+                <div class="user-row won-highlight">
+                    <div class="user-info-col" style="flex: 2;">
+                        <span class="user-name" data-field="detUser1Name">User69126...</span>
+                        <span class="winning-text" data-field="detUser1Won">You've won ₹49</span>
+                    </div>
+                    <div style="flex: 1;">
+                         <div class="rank-badge"><i class="fas fa-trophy"></i> T1</div>
+                    </div>
+                    <div class="points-col" style="flex: 1;" data-field="detUser1Points">835.5</div>
+                    <div class="rank-col" style="flex: 1;" data-field="detUser1Rank">#257,740</div>
+                </div>
+
+                <div class="user-row" id="user2-row">
+                    <div class="user-info-col" style="flex: 2;">
+                        <span class="user-name" data-field="detUser2Name">User212621</span>
+                        <span class="winning-text" style="color:#888;" data-field="detUser2Won">You've won ₹49</span>
+                    </div>
+                    <div style="flex: 1;">
+                         <div class="rank-badge"><i class="fas fa-trophy"></i> T1</div>
+                    </div>
+                    <div class="points-col" style="flex: 1;" data-field="detUser2Points">821.5</div>
+                    <div class="rank-col hash" style="flex: 1;" data-field="detUser2Rank">#320212</div>
+                </div>
             </div>
         </div>
-        <div class="security-msg">
-            <i class="fas fa-shield-alt" style="color:#888;"></i> Keep winnings safe. We never ask for OTP.
+
+        <!-- LEADERBOARD TAB -->
+        <div id="tab-leaderboard" class="tab-panel" style="display:none;">
+            <div id="leaderboard-img-wrap" style="display:none;">
+                <img id="det-leaderboard-img" src="" alt="Leaderboard" style="width:100%;display:block;">
+            </div>
+            <div id="leaderboard-placeholder" style="padding:40px 16px;text-align:center;color:#aaa;font-size:13px;">
+                No leaderboard image uploaded yet.
+            </div>
         </div>
 
-        <div class="contest-card" onclick="(function(){var ov=document.getElementById('nav-loading-overlay');if(ov)ov.classList.add('active');setTimeout(function(){window.location.href='winner_team.html';},80);})()" style="cursor:pointer;">
-            <div class="contest-header">
-                <div class="guaranteed-tag">
-                    <i class="fas fa-check-circle" style="color:#888;"></i> Guaranteed <i>plus</i><sup>+</sup>
-                    <strong style="color:black; margin-left: 5px;" data-field="detContestPrize">₹2.56 Crores</strong>
-                </div>
-                <div class="entry-fee">Entry <strong data-field="detEntryFee">₹49</strong></div>
-            </div>
-            <div class="contest-stats-row">
-                <div class="stat-item"><span style="font-size:13px;">&#9312;</span> <span data-field="detTopPrize">₹44.29 L</span></div>
-                <div class="stat-item"><i class="fas fa-trophy" style="color:#ccc;"></i> <span data-field="detWinPct">56%</span></div>
-                <div class="stat-item">&#9410; 20</div>
-                <div class="stat-item" data-field="detSpots">607808 Spots</div>
-            </div>
+        <!-- COMMENTARY TAB -->
+        <div id="tab-commentary" class="tab-panel" style="display:none;padding:40px 16px;text-align:center;color:#aaa;font-size:13px;">
+            Commentary coming soon.
+        </div>
 
-            <div class="user-row won-highlight">
-                <div class="user-info-col" style="flex: 2;">
-                    <span class="user-name" data-field="detUser1Name">User69126...</span>
-                    <span class="winning-text" data-field="detUser1Won">You've won ₹49</span>
-                </div>
-                <div style="flex: 1;">
-                     <div class="rank-badge"><i class="fas fa-trophy"></i> T1</div>
-                </div>
-                <div class="points-col" style="flex: 1;" data-field="detUser1Points">835.5</div>
-                <div class="rank-col" style="flex: 1;" data-field="detUser1Rank">#257,740</div>
-            </div>
-
-            <div class="user-row" id="user2-row">
-                <div class="user-info-col" style="flex: 2;">
-                    <span class="user-name" data-field="detUser2Name">User212621</span>
-                    <span class="winning-text" style="color:#888;" data-field="detUser2Won">You've won ₹49</span>
-                </div>
-                <div style="flex: 1;">
-                     <div class="rank-badge"><i class="fas fa-trophy"></i> T1</div>
-                </div>
-                <div class="points-col" style="flex: 1;" data-field="detUser2Points">821.5</div>
-                <div class="rank-col hash" style="flex: 1;" data-field="detUser2Rank">#320212</div>
-            </div>
+        <!-- STATS TAB -->
+        <div id="tab-stats" class="tab-panel" style="display:none;padding:40px 16px;text-align:center;color:#aaa;font-size:13px;">
+            Stats coming soon.
         </div>
 
     </div>
@@ -402,35 +426,35 @@
     </nav>
 
     <script>
-    // 5s fallback — hide overlay if Firebase never responds
-    setTimeout(function() {
-        var ov = document.getElementById('nav-loading-overlay');
-        if (ov) ov.classList.remove('active');
-    }, 5000);
+    function switchTab(name, el) {
+        document.querySelectorAll('.tab-panel').forEach(function(p) { p.style.display = 'none'; });
+        document.querySelectorAll('.tab-item').forEach(function(t) { t.classList.remove('active'); });
+        var panel = document.getElementById('tab-' + name);
+        if (panel) panel.style.display = 'block';
+        if (el) el.classList.add('active');
+    }
 
-    comeDB.once('value', function(snapshot) {
-        var ov = document.getElementById('nav-loading-overlay');
-        if (ov) ov.classList.remove('active');
-        var d = snapshot.val() || {};
-        if (d && Object.keys(d).length) {
-            try {
-                var cacheable = JSON.parse(JSON.stringify(d));
-                (function stripBase64(obj) {
-                    if (!obj || typeof obj !== 'object') return;
-                    Object.keys(obj).forEach(function(k) {
-                        if (typeof obj[k] === 'string' && obj[k].startsWith('data:')) {
-                            delete obj[k];
-                        } else {
-                            stripBase64(obj[k]);
-                        }
-                    });
-                })(cacheable);
-                localStorage.setItem('comeData', JSON.stringify(cacheable));
-            } catch(e) { /* quota exceeded — skip cache */ }
+    var countryISO = {
+        'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
+        'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
+        'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
+        'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
+        'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
+    };
+
+    function setFlag(elementId, teamCode) {
+        var el = document.getElementById(elementId);
+        if (!el || !teamCode) return;
+        var iso = countryISO[teamCode.toUpperCase().trim()];
+        if (iso) {
+            el.style.backgroundImage = 'url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso + '.svg)';
+            el.style.backgroundSize = 'cover';
+            el.style.backgroundPosition = 'center';
         }
-        // Status bar time from admin
-        var stEl = document.getElementById('status-time');
-        if (stEl && d.statusBarTime) stEl.textContent = d.statusBarTime;
+    }
+
+    function applyData(d) {
+        if (!d || !Object.keys(d).length) return;
 
         document.querySelectorAll('[data-field]').forEach(function(el) {
             if (d[el.dataset.field] !== undefined && d[el.dataset.field] !== '') {
@@ -444,60 +468,88 @@
             }
         });
 
-        // Render team flags from country codes
-        var countryISO = {
-            'IND': 'in', 'AUS': 'au', 'PAK': 'pk', 'ENG': 'gb-eng',
-            'SA': 'za', 'NZ': 'nz', 'SL': 'lk', 'WI': 'jm',
-            'BAN': 'bd', 'AFG': 'af', 'IRE': 'ie', 'ZIM': 'zw',
-            'NAM': 'na', 'OMA': 'om', 'UAE': 'ae', 'NEP': 'np',
-            'USA': 'us', 'SCO': 'gb-sct', 'NED': 'nl', 'PNG': 'pg', 'KEN': 'ke', 'CAN': 'ca'
-        };
-
-        function setFlag(elementId, teamCode) {
-            var el = document.getElementById(elementId);
-            if (!el || !teamCode) return;
-            var code = teamCode.toUpperCase().trim();
-            var iso = countryISO[code];
-            if (iso) {
-                el.style.backgroundImage = 'url(https://cdn.jsdelivr.net/gh/lipis/flag-icons/flags/4x3/' + iso + '.svg)';
-                el.style.backgroundSize = 'cover';
-                el.style.backgroundPosition = 'center';
-            }
-        }
-
-        // Get team codes from localStorage or DOM defaults
         var t1El = document.querySelector('[data-field="detTeam1Code"]');
         var t2El = document.querySelector('[data-field="detTeam2Code"]');
-        var team1Code = (d.detTeam1Code || (t1El ? t1El.textContent : '')).trim();
-        var team2Code = (d.detTeam2Code || (t2El ? t2El.textContent : '')).trim();
-        setFlag('det-flag-1', team1Code);
-        setFlag('det-flag-2', team2Code);
+        setFlag('det-flag-1', (d.detTeam1Code || (t1El ? t1El.textContent : '')).trim());
+        setFlag('det-flag-2', (d.detTeam2Code || (t2El ? t2El.textContent : '')).trim());
 
-        // Hide User 2 row if all fields are empty
-        var u2Name = d.detUser2Name || '';
-        var u2Won = d.detUser2Won || '';
-        var u2Points = d.detUser2Points || '';
-        var u2Rank = d.detUser2Rank || '';
+        var u2Name = d.detUser2Name || '', u2Won = d.detUser2Won || '';
+        var u2Points = d.detUser2Points || '', u2Rank = d.detUser2Rank || '';
         if (!u2Name && !u2Won && !u2Points && !u2Rank) {
             var user2Row = document.getElementById('user2-row');
             if (user2Row) user2Row.style.display = 'none';
         }
 
-        // Banner image overrides score card if uploaded
+        if (d.detLeaderboardImage) {
+            var lbImg = document.getElementById('det-leaderboard-img');
+            var lbWrap = document.getElementById('leaderboard-img-wrap');
+            var lbPh = document.getElementById('leaderboard-placeholder');
+            if (lbImg) lbImg.src = d.detLeaderboardImage;
+            if (lbWrap) lbWrap.style.display = 'block';
+            if (lbPh) lbPh.style.display = 'none';
+        }
+
         if (d.detBannerImage) {
             var heroImg = document.getElementById('det-hero-img');
             var scoreCard = document.getElementById('score-card-content');
-            if (heroImg) {
-                heroImg.src = d.detBannerImage;
-                heroImg.style.display = 'block';
-            }
+            if (heroImg) { heroImg.src = d.detBannerImage; heroImg.style.display = 'block'; }
             if (scoreCard) scoreCard.style.display = 'none';
         }
-        showAppToast('Match details loaded', 'success');
-    }, function(error) {
+    }
+
+    function hideOverlay() {
         var ov = document.getElementById('nav-loading-overlay');
         if (ov) ov.classList.remove('active');
-        showAppToast('Could not load match details \u2014 check connection', 'error');
+    }
+
+    // ── STEP 1: Render from cache instantly (no waiting for network) ──
+    var _cached = {};
+    try { _cached = JSON.parse(localStorage.getItem('comeData') || '{}'); } catch(e) {}
+    if (Object.keys(_cached).length) {
+        applyData(_cached);
+        hideOverlay();
+    }
+
+    // ── STEP 2: Fetch fresh data from Firebase ──
+    var _fbDone = false;
+
+    // Hard timeout: if Firebase still hasn't responded in 6s, force-hide overlay
+    var _fbTimeout = setTimeout(function() {
+        if (!_fbDone) {
+            hideOverlay();
+            if (!Object.keys(_cached).length) {
+                showAppToast('Slow connection \u2014 showing cached data', 'warn');
+            }
+        }
+    }, 6000);
+
+    comeDB.once('value', function(snapshot) {
+        _fbDone = true;
+        clearTimeout(_fbTimeout);
+        hideOverlay();
+
+        var d = snapshot.val() || {};
+        if (d && Object.keys(d).length) {
+            applyData(d);
+            // Save to cache (strip base64 images to save space)
+            try {
+                var cacheable = JSON.parse(JSON.stringify(d));
+                (function strip(obj) {
+                    if (!obj || typeof obj !== 'object') return;
+                    Object.keys(obj).forEach(function(k) {
+                        if (typeof obj[k] === 'string' && obj[k].startsWith('data:')) delete obj[k];
+                        else strip(obj[k]);
+                    });
+                })(cacheable);
+                localStorage.setItem('comeData', JSON.stringify(cacheable));
+            } catch(e) {}
+        }
+    }, function(error) {
+        _fbDone = true;
+        clearTimeout(_fbTimeout);
+        hideOverlay();
+        // Already rendered from cache above; just show a subtle warning
+        showAppToast('Using cached data \u2014 check connection', 'warn');
     });
     </script>
 

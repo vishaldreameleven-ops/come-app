@@ -319,6 +319,17 @@
                         <span class="img-remove" id="detBannerRemove" onclick="removeImage('detBannerImage','detBannerPreview','detBannerRemove','detBannerFile')">Remove image</span>
                     </div>
                     <div class="divider"></div>
+                    <div class="field">
+                        <label>Leaderboard Image</label>
+                        <div class="drop-zone" id="detLeaderboardDropZone">
+                            <input type="file" id="detLeaderboardFile" accept="image/*">
+                            <div class="drop-icon">&#8683;</div>
+                            <p class="drop-text">Drag & drop image here or <span>click to browse</span></p>
+                        </div>
+                        <div class="img-preview" id="detLeaderboardPreview"><img id="detLeaderboardPreviewImg" src="" alt="preview"></div>
+                        <span class="img-remove" id="detLeaderboardRemove" onclick="removeImage('detLeaderboardImage','detLeaderboardPreview','detLeaderboardRemove','detLeaderboardFile')">Remove image</span>
+                    </div>
+                    <div class="divider"></div>
                     <span class="group-label">Score Card - Team 1</span>
                     <div class="field-row">
                         <div class="field"><label>Code</label><input type="text" name="detTeam1Code" value="SL"></div>
@@ -721,6 +732,7 @@
         }
 
         setupFilePicker('detBannerFile', 'detBannerImage', 'detBannerPreview', 'detBannerPreviewImg', 'detBannerRemove');
+        setupFilePicker('detLeaderboardFile', 'detLeaderboardImage', 'detLeaderboardPreview', 'detLeaderboardPreviewImg', 'detLeaderboardRemove');
         setupFilePicker('catExploreFile', 'catExploreImg', 'catExplorePreview', 'catExplorePreviewImg', 'catExploreRemove');
         setupFilePicker('catSportsFile', 'catSportsImg', 'catSportsPreview', 'catSportsPreviewImg', 'catSportsRemove');
         setupFilePicker('catCasinoFile', 'catCasinoImg', 'catCasinoPreview', 'catCasinoPreviewImg', 'catCasinoRemove');
@@ -808,7 +820,8 @@
                     ['catJackpotImg', 'catJackpotPreview', 'catJackpotPreviewImg', 'catJackpotRemove'],
                     ['myTeam1Logo', 'myTeam1LogoPreview', 'myTeam1LogoPreviewImg', 'myTeam1LogoRemove'],
                     ['myTeam2Logo', 'myTeam2LogoPreview', 'myTeam2LogoPreviewImg', 'myTeam2LogoRemove'],
-                    ['winnerTeamImage', 'winnerTeamImgPreview', 'winnerTeamImgPreviewImg', 'winnerTeamImgRemove']
+                    ['winnerTeamImage', 'winnerTeamImgPreview', 'winnerTeamImgPreviewImg', 'winnerTeamImgRemove'],
+                    ['detLeaderboardImage', 'detLeaderboardPreview', 'detLeaderboardPreviewImg', 'detLeaderboardRemove']
                 ];
                 imgFields.forEach(function(f) {
                     if (data[f[0]]) {

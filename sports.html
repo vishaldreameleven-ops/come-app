@@ -367,6 +367,13 @@
         if (ov) ov.classList.remove('active');
     }
 
+    // Immediate cache-first render — show data instantly, don't wait for Firebase
+    (function() {
+        var cached = {};
+        try { cached = JSON.parse(localStorage.getItem('comeData') || '{}'); } catch(e) {}
+        if (Object.keys(cached).length) applyData(cached);
+    })();
+
     var _sportsFirstLoad = true;
 
     // Real-time listener — fires on page load AND on every admin save

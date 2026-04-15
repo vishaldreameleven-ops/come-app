@@ -861,6 +861,25 @@
         setInterval(function() { goToSlide((current + 1) % images.length); }, 4000);
     }
 
+    // Immediate cache-first render — show data instantly without waiting for Firebase
+    (function() {
+        var cached = {};
+        try { cached = JSON.parse(localStorage.getItem('comeData') || '{}'); } catch(e) {}
+        if (!Object.keys(cached).length) return;
+        var ov = document.getElementById('nav-loading-overlay');
+        if (ov) ov.classList.remove('active');
+        var stEl = document.getElementById('status-time');
+        if (stEl && cached.statusBarTime) stEl.textContent = cached.statusBarTime;
+        document.querySelectorAll('[data-field]').forEach(function(el) {
+            if (cached[el.dataset.field] !== undefined && cached[el.dataset.field] !== '') {
+                el.textContent = cached[el.dataset.field];
+            }
+        });
+        _indexBuildCarousel(cached);
+        renderMatches(cached);
+        // Don't set _indexDataRendered — Firebase will still update with fresh data
+    })();
+
     comeDB.once('value', function(snapshot) {
         _indexApplyAndReveal(snapshot.val() || {}, 'firebase');
     }, function(error) {
